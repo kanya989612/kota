@@ -2,6 +2,9 @@ use anyhow::Result;
 use dotenv::dotenv;
 use std::env;
 
+mod kota_cli;
+use kota_cli::KotaCli;
+
 #[tokio::main]
 async fn main() -> Result<()> {
     dotenv().ok();
@@ -13,9 +16,8 @@ async fn main() -> Result<()> {
     let model_name = env::var("MODEL_NAME")
         .unwrap_or_else(|_| "gpt-4o".to_string());
     
-    println!("🤖 Kota AI Code Agent starting...");
-    println!("📡 API Base: {}", api_base);
-    println!("🧠 Model: {}", model_name);
+    let cli = KotaCli::new(api_key, api_base, model_name);
+    cli.run().await?;
     
     Ok(())
 }
