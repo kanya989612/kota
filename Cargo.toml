@@ -11,3 +11,7 @@ crossterm = "0.27"
 colored = "2.0"
 unicode-width = "0.1"
 rig-core = "0.28.0"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+thiserror = "1.0"
+patch-apply = "0.8"

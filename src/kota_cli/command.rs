@@ -1,7 +1,8 @@
-use crate::AgentType;
+use crate::agent::AgentType;
 use anyhow::Result;
 use colored::*;
-use rig::completion::Prompt;
+use rig::agent::stream_to_stdout;
+use rig::streaming::StreamingPrompt;
 
 use super::KotaCli;
 
@@ -22,20 +23,40 @@ impl KotaCli {
                 println!("{} Type /help for available commands", "💡".bright_blue());
             }
             _ => {
-                // AI chat functionality
-                println!("{} {}", "💬 You said:".bright_blue(), input);
                 println!("{}", "🤖 Thinking...".yellow());
 
+                println!("{}", "🤖 kota:".green());
                 let response_result = match &self.agent {
-                    AgentType::OpenAI(agent) => agent.prompt(input).await,
-                    AgentType::Anthropic(agent) => agent.prompt(input).await,
-                    AgentType::Cohere(agent) => agent.prompt(input).await,
-                    AgentType::DeepSeek(agent) => agent.prompt(input).await,
+                    AgentType::OpenAI(agent) => {
+                        let mut stream = agent.stream_prompt(input).multi_turn(20).await;
+                        stream_to_stdout(&mut stream).await
+                    }
+                    AgentType::Anthropic(agent) => {
+                        let mut stream = agent.stream_prompt(input).multi_turn(20).await;
+                        stream_to_stdout(&mut stream).await
+                    }
+                    AgentType::Cohere(agent) => {
+                        let mut stream = agent.stream_prompt(input).multi_turn(20).await;
+                        stream_to_stdout(&mut stream).await
+                    }
+                    AgentType::DeepSeek(agent) => {
+                        let mut stream = agent.stream_prompt(input).multi_turn(20).await;
+                        stream_to_stdout(&mut stream).await
+                    }
+                    AgentType::Ollama(agent) => {
+                        let mut stream = agent.stream_prompt(input).multi_turn(20).await;
+                        stream_to_stdout(&mut stream).await
+                    }
                 };
+                println!();
 
                 match response_result {
-                    Ok(response) => {
-                        println!("{} {}", "🤖 AI:".bright_green(), response);
+                    Ok(resp) => {
+                        println!(
+                            "{} Total tokens used: {}",
+                            "📊".bright_blue(),
+                            resp.usage().total_tokens
+                        )
                     }
                     Err(e) => {
                         println!("{} Failed to get AI response: {}", "❌".red(), e);

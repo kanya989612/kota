@@ -1,4 +1,4 @@
-use crate::AgentType;
+use crate::agent::AgentType;
 use anyhow::Result;
 use colored::*;
 use crossterm::{

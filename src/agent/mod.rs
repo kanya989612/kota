@@ -1,0 +1,198 @@
+use anyhow::Result;
+use rig::{
+    agent::Agent,
+    client::CompletionClient,
+    providers::{
+        anthropic, cohere,
+        deepseek::{self, DEEPSEEK_CHAT},
+        ollama, openai,
+    },
+};
+
+use crate::tools::{
+    WrappedCreateDirectoryTool, WrappedDeleteFileTool, WrappedEditFileTool, WrappedExecuteBashCommandTool,
+    WrappedReadFileTool, WrappedScanCodebaseTool, WrappedWriteFileTool,
+};
+
+#[derive(Debug, Clone)]
+pub enum Provider {
+    OpenAI,
+    Anthropic,
+    Cohere,
+    DeepSeek,
+    Ollama,
+}
+
+// Agent enum to handle different provider types
+pub enum AgentType {
+    OpenAI(Agent<openai::responses_api::ResponsesCompletionModel>),
+    Anthropic(Agent<anthropic::completion::CompletionModel>),
+    Cohere(Agent<cohere::CompletionModel>),
+    DeepSeek(Agent<deepseek::CompletionModel>),
+    Ollama(Agent<ollama::CompletionModel>),
+}
+
+pub struct AgentBuilder {
+    provider: Provider,
+    api_key: String,
+    model_name: String,
+}
+
+impl AgentBuilder {
+    pub fn new(api_key: String, model_name: String) -> Result<Self> {
+        let provider = Self::get_provider_from_model(&model_name)?;
+        Ok(Self {
+            provider,
+            api_key,
+            model_name,
+        })
+    }
+
+    pub fn build(self) -> Result<AgentType> {
+        let tools = self.create_tools();
+        let preamble = self.get_preamble();
+
+        match self.provider {
+            Provider::OpenAI => {
+                let client = openai::Client::new(&self.api_key)?;
+                let agent = client
+                    .agent(&self.model_name)
+                    .preamble(&preamble)
+                    .tool(tools.read_file)
+                    .tool(tools.write_file)
+                    .tool(tools.edit_file)
+                    .tool(tools.delete_file)
+                    .tool(tools.execute_bash)
+                    .tool(tools.scan_codebase)
+                    .tool(tools.create_directory)
+                    .build();
+                Ok(AgentType::OpenAI(agent))
+            }
+            Provider::Anthropic => {
+                let client = anthropic::Client::new(&self.api_key)?;
+                let agent = client
+                    .agent(&self.model_name)
+                    .preamble(&preamble)
+                    .tool(tools.read_file)
+                    .tool(tools.write_file)
+                    .tool(tools.edit_file)
+                    .tool(tools.delete_file)
+                    .tool(tools.execute_bash)
+                    .tool(tools.scan_codebase)
+                    .tool(tools.create_directory)
+                    .build();
+                Ok(AgentType::Anthropic(agent))
+            }
+            Provider::Cohere => {
+                let client = cohere::Client::new(&self.api_key)?;
+                let agent = client
+                    .agent(&self.model_name)
+                    .preamble(&preamble)
+                    .tool(tools.read_file)
+                    .tool(tools.write_file)
+                    .tool(tools.edit_file)
+                    .tool(tools.delete_file)
+                    .tool(tools.execute_bash)
+                    .tool(tools.scan_codebase)
+                    .tool(tools.create_directory)
+                    .build();
+                Ok(AgentType::Cohere(agent))
+            }
+            Provider::DeepSeek => {
+                let client = deepseek::Client::new(&self.api_key)?;
+                let agent = client
+                    .agent(DEEPSEEK_CHAT)
+                    .preamble(&preamble)
+                    .tool(tools.read_file)
+                    .tool(tools.write_file)
+                    .tool(tools.edit_file)
+                    .tool(tools.delete_file)
+                    .tool(tools.execute_bash)
+                    .tool(tools.scan_codebase)
+                    .tool(tools.create_directory)
+                    .build();
+                Ok(AgentType::DeepSeek(agent))
+            }
+            Provider::Ollama => {
+                let client = ollama::Client::new(rig::client::Nothing)?;
+                let agent = client
+                    .agent(&self.model_name)
+                    .preamble(&preamble)
+                    .tool(tools.read_file)
+                    .tool(tools.write_file)
+                    .tool(tools.edit_file)
+                    .tool(tools.delete_file)
+                    .tool(tools.execute_bash)
+                    .tool(tools.scan_codebase)
+                    .tool(tools.create_directory)
+                    .build();
+                Ok(AgentType::Ollama(agent))
+            }
+        }
+    }
+
+    fn get_provider_from_model(model_name: &str) -> Result<Provider> {
+        match model_name.to_lowercase().as_str() {
+            // OpenAI models
+            name if name.starts_with("gpt-") || name.starts_with("o1-") => Ok(Provider::OpenAI),
+
+            // Anthropic models
+            name if name.starts_with("claude-") => Ok(Provider::Anthropic),
+
+            // Cohere models
+            name if name.starts_with("command-") => Ok(Provider::Cohere),
+
+            // DeepSeek models
+            name if name.starts_with("deepseek-") => Ok(Provider::DeepSeek),
+
+            _ => {
+                // 默认根据常见模型名称判断
+                match model_name {
+                    "gpt-4o" | "gpt-4" | "gpt-3.5-turbo" | "o1-preview" | "o1-mini" => {
+                        Ok(Provider::OpenAI)
+                    }
+                    "ollama" | "local" => Ok(Provider::Ollama),
+                    _ => Err(anyhow::anyhow!(
+                        "Unknown model: {}. Please specify a supported model.",
+                        model_name
+                    )),
+                }
+            }
+        }
+    }
+
+    fn create_tools(&self) -> AgentTools {
+        AgentTools {
+            read_file: WrappedReadFileTool::new(),
+            write_file: WrappedWriteFileTool::new(),
+            edit_file: WrappedEditFileTool::new(),
+            delete_file: WrappedDeleteFileTool::new(),
+            execute_bash: WrappedExecuteBashCommandTool::new(),
+            scan_codebase: WrappedScanCodebaseTool::new(),
+            create_directory: WrappedCreateDirectoryTool::new(),
+        }
+    }
+
+    fn get_preamble(&self) -> String {
+        r#"
+        Your name is Kato. You are a helpful AI code assistant with comprehensive file system and command execution access. 
+        You can read, write, edit (with patches), and delete files, execute bash commands, scan codebase structures, and create directories. 
+        Use the edit_file tool for making small, targeted changes to existing files - it's more efficient than rewriting entire files.
+        Please provide clear and concise responses and be careful when modifying files or executing commands."#.to_string()
+    }
+}
+
+struct AgentTools {
+    read_file: WrappedReadFileTool,
+    write_file: WrappedWriteFileTool,
+    edit_file: WrappedEditFileTool,
+    delete_file: WrappedDeleteFileTool,
+    execute_bash: WrappedExecuteBashCommandTool,
+    scan_codebase: WrappedScanCodebaseTool,
+    create_directory: WrappedCreateDirectoryTool,
+}
+
+// Convenience function for creating an agent
+pub fn create_agent(api_key: String, model_name: String) -> Result<AgentType> {
+    AgentBuilder::new(api_key, model_name)?.build()
+}
