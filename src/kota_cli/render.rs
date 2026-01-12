@@ -7,12 +7,14 @@ use crossterm::{
 use std::io::{self, Write};
 use unicode_width::{UnicodeWidthChar, UnicodeWidthStr};
 
+use crate::raw_println;
+
 use super::KotaCli;
 
 impl KotaCli {
     pub fn draw_input_box(&self, input: &str, cursor_pos: usize) -> Result<()> {
         let mut stdout = io::stdout();
-        let (terminal_width, terminal_height) = terminal::size()?;
+        let (terminal_width, terminal_height) = crossterm::terminal::size()?;
         let box_width = (terminal_width as usize).min(80); // 适应终端宽度
 
         // 检查是否有足够的垂直空间绘制输入框（需要5行）
@@ -255,37 +257,39 @@ impl KotaCli {
         Ok(())
     }
 
-    pub fn show_welcome(&self) {
-        println!("{}", "✨ Welcome to Kota CLI! 0.1.1".bright_green());
-        println!(
+    pub fn show_welcome(&self) -> Result<()> {
+        raw_println!("{}", "✨ Welcome to Kota CLI! 0.1.1".bright_green())?;
+        raw_println!(
             "{} {}",
             "cwd:".dimmed(),
             std::env::current_dir().unwrap().display()
-        );
-        println!();
+        )?;
+        raw_println!()?;
+        Ok(())
     }
 
-    pub fn show_tips(&self) {
-        println!("{}", "Tips for getting started:".bright_white());
-        println!();
-        println!(
+    pub fn show_tips(&self) -> Result<()> {
+        raw_println!("{}", "Tips for getting started:".bright_white())?;
+        raw_println!()?;
+        raw_println!(
             "{} Ask questions, edit files, or run commands.",
             "1.".bright_white()
-        );
-        println!("{} Be specific for the best results.", "2.".bright_white());
-        println!("{} Type /help for more information.", "3.".bright_white());
-        println!();
-        println!(
+        )?;
+        raw_println!("{} Be specific for the best results.", "2.".bright_white())?;
+        raw_println!("{} Type /help for more information.", "3.".bright_white())?;
+        raw_println!()?;
+        raw_println!(
             "{}",
             "? for shortcuts, ctrl+c to exit, ctrl+f to add images".dimmed()
-        );
-        println!();
-        println!(
+        )?;
+        raw_println!()?;
+        raw_println!(
             "{} {}",
             "Not logged in yet, please log in using the".yellow(),
             "\"/login\" command".bright_yellow()
-        );
-        println!();
+        )?;
+        raw_println!()?;
+        Ok(())
     }
 
     // 获取字符串的显示宽度

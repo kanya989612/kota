@@ -11,6 +11,7 @@ use std::io;
 
 mod command;
 mod render;
+pub mod utils;
 
 pub struct KotaCli {
     pub api_key: String,
@@ -30,8 +31,8 @@ impl KotaCli {
     }
 
     pub async fn run(&self) -> Result<()> {
-        self.show_welcome();
-        self.show_tips();
+        self.show_welcome()?;
+        self.show_tips()?;
 
         // 启用原始模式
         terminal::enable_raw_mode()?;
