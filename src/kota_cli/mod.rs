@@ -14,6 +14,16 @@ mod command;
 mod render;
 pub mod utils;
 
+const LOGO: &str = r#"
+
+██╗░░██╗░█████╗░████████╗░█████╗░
+██║░██╔╝██╔══██╗╚══██╔══╝██╔══██╗
+█████═╝░██║░░██║░░░██║░░░███████║
+██╔═██╗░██║░░██║░░░██║░░░██╔══██║
+██║░╚██╗╚█████╔╝░░░██║░░░██║░░██║
+╚═╝░░╚═╝░╚════╝░░░░╚═╝░░░╚═╝░░╚═╝
+"#;
+
 pub struct KotaCli {
     pub api_key: String,
     pub api_base: String,
@@ -45,6 +55,7 @@ impl KotaCli {
     }
 
     pub async fn run(&mut self) -> Result<()> {
+        println!("{}", LOGO);
         self.show_welcome()?;
         self.show_tips()?;
 
