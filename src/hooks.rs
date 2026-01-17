@@ -1,8 +1,6 @@
-use colored::*;
 use rig::agent::{CancelSignal, StreamingPromptHook};
 use rig::completion::CompletionModel;
 use rig::completion::Message;
-use serde_json;
 
 /// Session-aware hook that logs tool calls and completions with session context
 #[derive(Clone)]

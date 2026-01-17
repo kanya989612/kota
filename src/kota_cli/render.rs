@@ -7,9 +7,11 @@ impl KotaCli {
     pub fn show_welcome(&self) -> Result<()> {
         println!("{}", "✨ Welcome to Kota CLI! 0.1.1".bright_green());
         println!(
-            "{} {}",
+            "{} {} | {} {}",
             "cwd:".dimmed(),
-            std::env::current_dir().unwrap().display()
+            std::env::current_dir().unwrap().display(),
+            "model:".dimmed(),
+            self.model_name
         );
         println!();
         Ok(())

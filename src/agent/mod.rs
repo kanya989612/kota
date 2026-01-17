@@ -15,6 +15,25 @@ use crate::tools::{
     WrappedScanCodebaseTool, WrappedWriteFileTool,
 };
 
+macro_rules! build_agent {
+    ($client_expr:expr, $model_name:expr, $preamble:expr, $tools:expr, $variant:ident) => {{
+        let client = $client_expr?;
+        let agent = client
+            .agent($model_name)
+            .preamble($preamble)
+            .tool($tools.read_file)
+            .tool($tools.write_file)
+            .tool($tools.edit_file)
+            .tool($tools.delete_file)
+            .tool($tools.execute_bash)
+            .tool($tools.scan_codebase)
+            .tool($tools.create_directory)
+            .tool($tools.grep_search)
+            .build();
+        Ok(AgentType::$variant(agent))
+    }};
+}
+
 #[derive(Debug, Clone)]
 pub enum Provider {
     OpenAI,
@@ -55,84 +74,49 @@ impl AgentBuilder {
 
         match self.provider {
             Provider::OpenAI => {
-                let client = openai::Client::new(&self.api_key)?;
-                let agent = client
-                    .agent(&self.model_name)
-                    .preamble(&preamble)
-                    .tool(tools.read_file)
-                    .tool(tools.write_file)
-                    .tool(tools.edit_file)
-                    .tool(tools.delete_file)
-                    .tool(tools.execute_bash)
-                    .tool(tools.scan_codebase)
-                    .tool(tools.create_directory)
-                    .tool(tools.grep_search)
-                    .build();
-                Ok(AgentType::OpenAI(agent))
+                build_agent!(
+                    openai::Client::new(&self.api_key),
+                    &self.model_name,
+                    &preamble,
+                    tools,
+                    OpenAI
+                )
             }
             Provider::Anthropic => {
-                let client = anthropic::Client::new(&self.api_key)?;
-                let agent = client
-                    .agent(&self.model_name)
-                    .preamble(&preamble)
-                    .tool(tools.read_file)
-                    .tool(tools.write_file)
-                    .tool(tools.edit_file)
-                    .tool(tools.delete_file)
-                    .tool(tools.execute_bash)
-                    .tool(tools.scan_codebase)
-                    .tool(tools.create_directory)
-                    .tool(tools.grep_search)
-                    .build();
-                Ok(AgentType::Anthropic(agent))
+                build_agent!(
+                    anthropic::Client::new(&self.api_key),
+                    &self.model_name,
+                    &preamble,
+                    tools,
+                    Anthropic
+                )
             }
             Provider::Cohere => {
-                let client = cohere::Client::new(&self.api_key)?;
-                let agent = client
-                    .agent(&self.model_name)
-                    .preamble(&preamble)
-                    .tool(tools.read_file)
-                    .tool(tools.write_file)
-                    .tool(tools.edit_file)
-                    .tool(tools.delete_file)
-                    .tool(tools.execute_bash)
-                    .tool(tools.scan_codebase)
-                    .tool(tools.create_directory)
-                    .tool(tools.grep_search)
-                    .build();
-                Ok(AgentType::Cohere(agent))
+                build_agent!(
+                    cohere::Client::new(&self.api_key),
+                    &self.model_name,
+                    &preamble,
+                    tools,
+                    Cohere
+                )
             }
             Provider::DeepSeek => {
-                let client = deepseek::Client::new(&self.api_key)?;
-                let agent = client
-                    .agent(DEEPSEEK_CHAT)
-                    .preamble(&preamble)
-                    .tool(tools.read_file)
-                    .tool(tools.write_file)
-                    .tool(tools.edit_file)
-                    .tool(tools.delete_file)
-                    .tool(tools.execute_bash)
-                    .tool(tools.scan_codebase)
-                    .tool(tools.create_directory)
-                    .tool(tools.grep_search)
-                    .build();
-                Ok(AgentType::DeepSeek(agent))
+                build_agent!(
+                    deepseek::Client::new(&self.api_key),
+                    DEEPSEEK_CHAT,
+                    &preamble,
+                    tools,
+                    DeepSeek
+                )
             }
             Provider::Ollama => {
-                let client = ollama::Client::new(rig::client::Nothing)?;
-                let agent = client
-                    .agent(&self.model_name)
-                    .preamble(&preamble)
-                    .tool(tools.read_file)
-                    .tool(tools.write_file)
-                    .tool(tools.edit_file)
-                    .tool(tools.delete_file)
-                    .tool(tools.execute_bash)
-                    .tool(tools.scan_codebase)
-                    .tool(tools.create_directory)
-                    .tool(tools.grep_search)
-                    .build();
-                Ok(AgentType::Ollama(agent))
+                build_agent!(
+                    ollama::Client::new(rig::client::Nothing),
+                    &self.model_name,
+                    &preamble,
+                    tools,
+                    Ollama
+                )
             }
         }
     }
