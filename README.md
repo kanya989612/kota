@@ -44,7 +44,6 @@ Kota provides an interactive CLI with the following commands:
 
 Kota supports intelligent tab completion for commands:
 
-- Type `/` and press **Tab** to see all available commands
 - Type partial commands (e.g., `/h`) and press **Tab** to auto-complete
 - Commands are highlighted in green when recognized
 - Use **Ctrl+C** to exit or **Ctrl+D** for EOF
@@ -52,8 +51,7 @@ Kota supports intelligent tab completion for commands:
 **Example usage:**
 ```
 ❯ /h<Tab>        # Completes to /help
-❯ /lo<Tab>       # Completes to /load
-❯ /<Tab>         # Shows all available commands
+❯ /hi<Tab>       # Completes to /history
 ```
 
 ## Available Tools

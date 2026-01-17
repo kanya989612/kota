@@ -25,7 +25,10 @@ impl KotaCli {
         println!("{} Be specific for the best results.", "2.".bright_white());
         println!("{} Type /help for more information.", "3.".bright_white());
         println!();
-        println!("{}", "ctrl+c to exit, /help for commands, Tab for completion".dimmed());
+        println!(
+            "{}",
+            "ctrl+c to exit, /help for commands, Tab for completion".dimmed()
+        );
         println!();
         Ok(())
     }

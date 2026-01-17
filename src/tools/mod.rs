@@ -10,6 +10,8 @@ pub enum FileToolError {
     PermissionDenied(String),
     #[error("Path is not a file: {0}")]
     NotAFile(String),
+    #[error("Input is invalid: {0}")]
+    InvalidInput(String),
 }
 
 pub mod create_directory;

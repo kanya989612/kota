@@ -25,6 +25,8 @@ patch-apply = "0.8.3"
 regex = "1.0"
 walkdir = "2.0"
 chrono = { version = "0.4", features = ["serde"] }
+ignore = "0.4"
+names = { version = "0.14.0", default-features = false }
 
 [dev-dependencies]
 tempfile = "3.0"

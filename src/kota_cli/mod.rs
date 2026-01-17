@@ -2,12 +2,13 @@ use crate::agent::AgentType;
 use crate::context::ContextManager;
 use anyhow::Result;
 use colored::*;
-use rustyline::error::ReadlineError;
-use rustyline::Editor;
+use names::Generator;
 use rustyline::completion::{Completer, FilenameCompleter, Pair};
+use rustyline::error::ReadlineError;
 use rustyline::highlight::{Highlighter, MatchingBracketHighlighter};
 use rustyline::hint::{Hinter, HistoryHinter};
 use rustyline::validate::{self, MatchingBracketValidator, Validator};
+use rustyline::Editor;
 use rustyline::{Context, Helper};
 use std::borrow::Cow::{self, Borrowed, Owned};
 use std::collections::HashSet;
@@ -57,7 +58,7 @@ impl Completer for KotaHelper {
         if line.starts_with('/') {
             let input = &line[..pos];
             let mut matches = Vec::new();
-            
+
             for command in &self.commands {
                 if command.starts_with(input) {
                     matches.push(Pair {
@@ -66,10 +67,10 @@ impl Completer for KotaHelper {
                     });
                 }
             }
-            
+
             // 按字母顺序排序
             matches.sort_by(|a, b| a.display.cmp(&b.display));
-            
+
             Ok((0, matches))
         } else {
             Ok((pos, vec![]))
@@ -115,7 +116,7 @@ impl Highlighter for KotaHelper {
                 return Owned(line.bright_green().to_string());
             }
         }
-        
+
         self.highlighter.highlight(line, pos)
     }
 
@@ -153,7 +154,7 @@ pub struct KotaCli {
     pub api_base: String,
     pub model_name: String,
     pub agent: AgentType,
-    pub context: ContextManager
+    pub context: ContextManager,
 }
 
 impl KotaCli {
@@ -163,9 +164,21 @@ impl KotaCli {
         model_name: String,
         agent: AgentType,
     ) -> Result<Self> {
-        // 创建默认的上下文管理器
-        let context =
-            ContextManager::new("./.chat_sessions", "default".to_string())?.with_max_messages(100);
+        let session_id = {
+            let mut generator = Generator::default();
+            generator
+                .next()
+                .unwrap_or_else(|| "unknown-session".to_string())
+        };
+
+        println!(
+            "{} {}",
+            "🎯 Session ID:".bright_cyan(),
+            session_id.bright_yellow()
+        );
+
+        // 创建上下文管理器，使用随机生成的session_id
+        let context = ContextManager::new("./.chat_sessions", session_id)?.with_max_messages(100);
 
         Ok(Self {
             api_key,
