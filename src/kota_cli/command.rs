@@ -170,6 +170,10 @@ impl KotaCli {
             "{}",
             "💡 You can also type any message to chat with the AI!".bright_white()
         );
+        println!(
+            "{}",
+            "⌨️  Press Tab after typing '/' to see available commands".bright_blue()
+        );
         println!();
         Ok(())
     }

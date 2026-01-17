@@ -27,6 +27,35 @@ Before running Kota, you need to create a `.env` file with your API configuratio
 cargo run -r
 ```
 
+## CLI Features
+
+### Interactive Commands
+
+Kota provides an interactive CLI with the following commands:
+
+- `/quit` or `/exit` - Exit the application
+- `/config` - Show current model configuration
+- `/help` - Show available commands
+- `/history` - Show conversation history
+- `/load [session_id]` - List all sessions or load specific session
+- `/delete <session_id>` - Delete a specific session
+
+### Tab Completion
+
+Kota supports intelligent tab completion for commands:
+
+- Type `/` and press **Tab** to see all available commands
+- Type partial commands (e.g., `/h`) and press **Tab** to auto-complete
+- Commands are highlighted in green when recognized
+- Use **Ctrl+C** to exit or **Ctrl+D** for EOF
+
+**Example usage:**
+```
+❯ /h<Tab>        # Completes to /help
+❯ /lo<Tab>       # Completes to /load
+❯ /<Tab>         # Shows all available commands
+```
+
 ## Available Tools
 
 Kota comes with a comprehensive set of file system and development tools:
