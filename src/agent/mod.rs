@@ -21,6 +21,7 @@ macro_rules! build_agent {
         let agent = client
             .agent($model_name)
             .preamble($preamble)
+            .max_tokens(4096)
             .tool($tools.read_file)
             .tool($tools.write_file)
             .tool($tools.edit_file)
