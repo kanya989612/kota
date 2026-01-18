@@ -1,6 +1,6 @@
 [package]
 name = "kota"
-version = "0.1.1"
+version = "0.1.2"
 edition = "2021"
 authors = ["Stepfen Shawn <m18824909883@163.com>"]
 license = "MIT"

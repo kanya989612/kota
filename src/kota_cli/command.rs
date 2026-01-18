@@ -59,6 +59,7 @@ impl KotaCli {
                             .stream_prompt(input)
                             .with_hook(hook.clone())
                             .multi_turn(20)
+                            .with_history(self.context.get_messages().to_vec())
                             .await;
                         stream_to_stdout(&mut stream).await
                     }
@@ -67,6 +68,7 @@ impl KotaCli {
                             .stream_prompt(input)
                             .with_hook(hook.clone())
                             .multi_turn(20)
+                            .with_history(self.context.get_messages().to_vec())
                             .await;
                         stream_to_stdout(&mut stream).await
                     }
@@ -75,6 +77,7 @@ impl KotaCli {
                             .stream_prompt(input)
                             .with_hook(hook.clone())
                             .multi_turn(20)
+                            .with_history(self.context.get_messages().to_vec())
                             .await;
                         stream_to_stdout(&mut stream).await
                     }
@@ -83,6 +86,7 @@ impl KotaCli {
                             .stream_prompt(input)
                             .with_hook(hook.clone())
                             .multi_turn(20)
+                            .with_history(self.context.get_messages().to_vec())
                             .await;
                         stream_to_stdout(&mut stream).await
                     }
@@ -91,6 +95,7 @@ impl KotaCli {
                             .stream_prompt(input)
                             .with_hook(hook.clone())
                             .multi_turn(20)
+                            .with_history(self.context.get_messages().to_vec())
                             .await;
                         stream_to_stdout(&mut stream).await
                     }
