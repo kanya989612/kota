@@ -107,6 +107,7 @@ Each tool provides detailed feedback during execution and handles common error c
    - Built-in skills for common development tasks
 
 ### Future Enhancements
+- Plan mode for structured task execution
 - Plugin system for custom tools
 - Enhanced session management
 - Multi-project workspace support
