@@ -9,10 +9,11 @@ use rig::{
     },
 };
 
+use crate::plan::PlanManager;
 use crate::tools::{
     WrappedCreateDirectoryTool, WrappedDeleteFileTool, WrappedEditFileTool,
     WrappedExecuteBashCommandTool, WrappedGrepSearchTool, WrappedReadFileTool,
-    WrappedScanCodebaseTool, WrappedWriteFileTool,
+    WrappedScanCodebaseTool, WrappedUpdatePlanTool, WrappedWriteFileTool,
 };
 
 macro_rules! build_agent {
@@ -30,6 +31,7 @@ macro_rules! build_agent {
             .tool($tools.scan_codebase)
             .tool($tools.make_dir)
             .tool($tools.grep_find)
+            .tool($tools.update_plan)
             .build();
         Ok(AgentType::$variant(agent))
     }};
@@ -57,6 +59,7 @@ pub struct AgentBuilder {
     provider: Provider,
     api_key: String,
     model_name: String,
+    plan_manager: PlanManager,
 }
 
 impl AgentBuilder {
@@ -66,7 +69,13 @@ impl AgentBuilder {
             provider,
             api_key,
             model_name,
+            plan_manager: PlanManager::new(),
         })
+    }
+
+    pub fn with_plan_manager(mut self, manager: PlanManager) -> Self {
+        self.plan_manager = manager;
+        self
     }
 
     pub fn build(self) -> Result<AgentType> {
@@ -154,14 +163,22 @@ impl AgentBuilder {
             scan_codebase: WrappedScanCodebaseTool::new(),
             make_dir: WrappedCreateDirectoryTool::new(),
             grep_find: WrappedGrepSearchTool::new(),
+            update_plan: WrappedUpdatePlanTool::new(self.plan_manager.clone()),
         }
     }
 
     fn get_preamble(&self) -> String {
         r#"
         Your name is Kato. You are a helpful AI code assistant with comprehensive file system and command execution access. 
-        You can read, write, edit (with patches), and delete files, execute bash commands, scan codebase structures,  search text in the codebase and create directories. 
+        You can read, write, edit (with patches), and delete files, execute bash commands, scan codebase structures, search text in the codebase and create directories. 
         Use the edit_file tool for making small, targeted changes to existing files - it's more efficient than rewriting entire files.
+        
+        You also have access to Plan Mode via the update_plan tool. Use it to:
+        - Create structured execution plans for complex tasks
+        - Break down work into manageable tasks with dependencies
+        - Track progress and update task status (pending, in_progress, completed, blocked)
+        - Show current plan and identify next available tasks
+        
         Please provide clear and concise responses and be careful when modifying files or executing commands."#.to_string()
     }
 }
@@ -175,6 +192,7 @@ struct AgentTools {
     scan_codebase: WrappedScanCodebaseTool,
     make_dir: WrappedCreateDirectoryTool,
     grep_find: WrappedGrepSearchTool,
+    update_plan: WrappedUpdatePlanTool,
 }
 
 // Convenience function for creating an agent

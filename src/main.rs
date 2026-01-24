@@ -6,6 +6,7 @@ mod agent;
 mod context;
 mod hooks;
 mod kota_cli;
+mod plan;
 mod tools;
 
 use agent::create_agent;

@@ -21,6 +21,7 @@ pub mod execute_bash_command;
 pub mod grep_search;
 pub mod read_file;
 pub mod scan_codebase;
+pub mod update_plan;
 pub mod write_file;
 
 pub use create_directory::WrappedCreateDirectoryTool;
@@ -30,4 +31,5 @@ pub use execute_bash_command::WrappedExecuteBashCommandTool;
 pub use grep_search::WrappedGrepSearchTool;
 pub use read_file::WrappedReadFileTool;
 pub use scan_codebase::WrappedScanCodebaseTool;
+pub use update_plan::WrappedUpdatePlanTool;
 pub use write_file::WrappedWriteFileTool;

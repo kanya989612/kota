@@ -92,6 +92,7 @@ Kota comes with a comprehensive set of file system and development tools:
 | | `scan_codebase` | Scan and display the structure of a codebase directory tree |
 | **Search Operations** | `grep_find` | Search for text patterns in files using regular expressions with recursive directory traversal |
 | **System Operations** | `exec_cmd` | Execute bash/cmd commands and return output (use with caution) |
+| **Plan Mode** | `update_plan` | Manage structured execution plans with tasks, dependencies, and status tracking (similar to Claude Code) |
 
 Each tool provides detailed feedback during execution and handles common error cases like permission issues and missing files.
 
@@ -110,7 +111,7 @@ Each tool provides detailed feedback during execution and handles common error c
    - Built-in skills for common development tasks
 
 ### Future Enhancements
-- Plan mode for structured task execution
+- ~~Plan mode for structured task execution~~ ✅ Implemented
 - Plugin system for custom tools
 - Enhanced session management
 - Multi-project workspace support
