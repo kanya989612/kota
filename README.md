@@ -25,15 +25,57 @@ Before running Kota, you need to create a `.env` file with your API configuratio
    - `API_KEY`: Your LLM provider API key
    - `MODEL_NAME`: The model to use (see supported models below)
 
-## Install
-```
+## Installation
+
+### As a CLI Tool
+```bash
 cargo install kota
 ```
-and then start it by:  
-```
+Then start it:
+```bash
 kota
 ```
-enjoy it!
+
+### As a Library
+Add Kota to your `Cargo.toml`:
+```toml
+[dependencies]
+kota = "0.1.3"
+tokio = { version = "1.0", features = ["full"] }
+anyhow = "1.0"
+```
+
+## Usage as a Library
+
+Kota can be used as a library to build your own AI code agents. Here's a quick example:
+
+```rust
+use kota::kota_code::{AgentBuilder, ContextManager};
+use anyhow::Result;
+
+#[tokio::main]
+async fn main() -> Result<()> {
+    // Create an agent
+    let agent = AgentBuilder::new(
+        "your-api-key".to_string(),
+        "gpt-4".to_string()
+    )?.build()?;
+
+    // Create context manager for conversation history
+    let mut context = ContextManager::new(".chat_sessions", "my-session".to_string())?;
+
+    // Use the agent...
+    Ok(())
+}
+```
+
+### Library Features
+
+- **Agent Builder**: Create customized AI agents with different LLM providers
+- **Context Management**: Persistent conversation history with session support
+- **Plan Management**: Structured task execution with dependencies
+- **Skills System**: Specialized agent behaviors for different tasks
+- **Built-in Tools**: File operations, code scanning, grep search, and more
 
 ## Supported Models
 
@@ -57,8 +99,11 @@ Kota provides an interactive CLI with the following commands:
 - `/config` - Show current model configuration
 - `/help` - Show available commands
 - `/history` - Show conversation history
+- `/skills` - List all available skills
+- `/skill <name>` - Activate a specific skill
+- `/skill-off` - Deactivate current skill
 - `/load <session_id>` - Load specific session
-- `/list` - List all sessions
+- `/sessions` - List all sessions
 - `/delete <session_id>` - Delete a specific session
 
 ### Tab Completion
@@ -96,6 +141,35 @@ Kota comes with a comprehensive set of file system and development tools:
 
 Each tool provides detailed feedback during execution and handles common error cases like permission issues and missing files.
 
+## Skills System
+
+Kota now includes a powerful Skills system similar to Claude's skills, allowing you to specialize the AI assistant for specific tasks.
+
+### Built-in Skills
+
+| Skill | Description | Available Tools |
+|-------|-------------|-----------------|
+| **code_review** | Code quality analysis and review | read_file, scan_codebase, grep_search |
+| **refactor** | Code refactoring and optimization | read_file, edit_file, write_file |
+| **debug** | Problem diagnosis and debugging | read_file, execute_bash, grep_search |
+| **documentation** | Documentation writing and improvement | read_file, write_file, scan_codebase |
+
+### Using Skills
+
+```bash
+# List all available skills
+❯ /skills
+
+# Activate a skill
+❯ /skill code_review
+
+# Use the skill
+❯ Please review src/main.rs for code quality issues
+
+# Deactivate skill
+❯ /skill-off
+```
+
 ## Roadmap & TODO
 
 ### Upcoming Features
@@ -111,9 +185,16 @@ Each tool provides detailed feedback during execution and handles common error c
    - Built-in skills for common development tasks
 
 ### Future Enhancements
-- ~~Plan mode for structured task execution~~ ✅ Implemented
 - Plugin system for custom tools
 - Enhanced session management
 - Multi-project workspace support
 - Integration with popular IDEs and editors
+
+## API Documentation
+
+Full API documentation is available at [docs.rs/kota](https://docs.rs/kota).
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
 

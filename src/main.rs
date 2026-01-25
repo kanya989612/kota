@@ -2,14 +2,9 @@ use anyhow::{Ok, Result};
 use dotenv::dotenv;
 use std::env;
 
-mod agent;
-mod context;
-mod hooks;
 mod kota_cli;
-mod plan;
-mod tools;
 
-use agent::create_agent;
+use kota::kota_code::agent::create_agent;
 use kota_cli::KotaCli;
 
 #[tokio::main]

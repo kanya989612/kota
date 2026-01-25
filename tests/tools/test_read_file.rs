@@ -1,6 +1,6 @@
 use super::{create_temp_dir, create_test_file};
-use kota::tools::read_file::{ReadFileArgs, ReadFileTool};
-use kota::tools::FileToolError;
+use kota::kota_code::tools::read_file::{ReadFileArgs, ReadFileTool};
+use kota::kota_code::tools::FileToolError;
 use rig::tool::Tool;
 
 #[tokio::test]

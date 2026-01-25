@@ -17,19 +17,19 @@ impl SessionIdHook {
 impl<M: CompletionModel> StreamingPromptHook<M> for SessionIdHook {
     async fn on_tool_call(
         &self,
-        tool_name: &str,
+        _tool_name: &str,
         _tool_call_id: Option<String>,
-        args: &str,
+        _args: &str,
         _cancel_sig: CancelSignal,
     ) {
     }
 
     async fn on_tool_result(
         &self,
-        tool_name: &str,
+        _tool_name: &str,
         _tool_call_id: Option<String>,
         _args: &str,
-        result: &str,
+        _result: &str,
         _cancel_sig: CancelSignal,
     ) {
     }

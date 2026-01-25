@@ -1,11 +1,15 @@
 [package]
 name = "kota"
-version = "0.1.2"
+version = "0.1.3"
 edition = "2021"
 authors = ["Stepfen Shawn <m18824909883@163.com>"]
 license = "MIT"
 description = "A lightweight ai code agent in Rust."
 repository = "https://github.com/StepfenShawn/kota"
+documentation = "https://docs.rs/kota"
+readme = "README.md"
+keywords = ["ai", "agent", "llm", "code-assistant", "automation"]
+categories = ["development-tools", "command-line-utilities"]
 
 [[bin]]
 name = "kota"

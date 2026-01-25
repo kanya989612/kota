@@ -1,6 +1,6 @@
-use crate::agent::AgentType;
-use crate::context::{ContextManager, SerializableMessage};
-use crate::hooks::SessionIdHook;
+use kota::kota_code::agent::AgentType;
+use kota::kota_code::context::{ContextManager, SerializableMessage};
+use kota::kota_code::hooks::SessionIdHook;
 use anyhow::Result;
 use colored::*;
 use rig::agent::stream_to_stdout;
@@ -23,6 +23,16 @@ impl KotaCli {
             }
             "/history" => {
                 self.show_history()?;
+            }
+            "/skills" => {
+                self.list_skills()?;
+            }
+            _ if input.starts_with("/skill ") => {
+                let skill_name = input.strip_prefix("/skill ").unwrap_or("").trim();
+                self.activate_skill(skill_name)?;
+            }
+            "/skill-off" => {
+                self.deactivate_skill()?;
             }
             _ if input.starts_with("/load ") => {
                 let session_id = input.strip_prefix("/load ").unwrap_or("").trim();
@@ -160,6 +170,12 @@ impl KotaCli {
             "  {} - Show conversation history",
             "/history".bright_green()
         );
+        println!("  {} - List all available skills", "/skills".bright_green());
+        println!(
+            "  {} - Activate a specific skill",
+            "/skill <name>".bright_green()
+        );
+        println!("  {} - Deactivate current skill", "/skill-off".bright_green());
         println!(
             "  {} - Load specific session",
             "/load <session_id>".bright_green()
@@ -359,6 +375,70 @@ impl KotaCli {
                 );
             }
         }
+        println!();
+        Ok(())
+    }
+
+    fn list_skills(&mut self) -> Result<()> {
+        let skills = self.skill_manager.list_skills();
+        
+        if skills.is_empty() {
+            println!("{} No skills available", "🎯".bright_blue());
+        } else {
+            println!("{} Available Skills:", "🎯".bright_blue());
+            println!();
+            
+            for (i, skill) in skills.iter().enumerate() {
+                let active_marker = if self.skill_manager.get_active_skill()
+                    .map(|s| s.name == skill.name)
+                    .unwrap_or(false) {
+                    " (active)".bright_green()
+                } else {
+                    "".normal()
+                };
+                
+                println!(
+                    "{}. {}{}",
+                    ((i + 1) as i32).to_string().bright_white(),
+                    skill.name.bright_cyan(),
+                    active_marker
+                );
+                println!("   {}", skill.description.dimmed());
+                println!("   Tools: {}", skill.enabled_tools.join(", ").bright_yellow());
+                println!();
+            }
+            
+            println!("{} Use '/skill <name>' to activate a skill", "💡".bright_blue());
+        }
+        println!();
+        Ok(())
+    }
+
+    fn activate_skill(&mut self, skill_name: &str) -> Result<()> {
+        match self.skill_manager.activate_skill(skill_name) {
+            Ok(_) => {
+                println!(
+                    "{} Activated skill: {}",
+                    "✅".bright_green(),
+                    skill_name.bright_cyan()
+                );
+                if let Some(skill) = self.skill_manager.get_skill(skill_name) {
+                    println!("   {}", skill.description.dimmed());
+                    println!("   Available tools: {}", skill.enabled_tools.join(", ").bright_yellow());
+                }
+            }
+            Err(e) => {
+                println!("{} Failed to activate skill: {}", "❌".red(), e);
+                println!("{} Use '/skills' to see available skills", "💡".bright_blue());
+            }
+        }
+        println!();
+        Ok(())
+    }
+
+    fn deactivate_skill(&mut self) -> Result<()> {
+        self.skill_manager.deactivate_skill();
+        println!("{} Skill deactivated", "✅".bright_green());
         println!();
         Ok(())
     }

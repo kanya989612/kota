@@ -1,4 +1,4 @@
-use kota::context::ContextManager;
+use kota::kota_code::context::ContextManager;
 use rig::completion::Message;
 use tempfile::TempDir;
 

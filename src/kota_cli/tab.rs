@@ -24,6 +24,9 @@ impl Default for KotaHelper {
         commands.insert("/config".to_string());
         commands.insert("/help".to_string());
         commands.insert("/history".to_string());
+        commands.insert("/skills".to_string());
+        commands.insert("/skill".to_string());
+        commands.insert("/skill-off".to_string());
         commands.insert("/load".to_string());
         commands.insert("/sessions".to_string());
         commands.insert("/delete".to_string());

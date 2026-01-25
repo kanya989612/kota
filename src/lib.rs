@@ -1,18 +1,39 @@
-// Library interface for Kota
-// This exposes internal modules for testing and potential library usage
+//! # Kota - A lightweight ai code agent in Rust.
+//!
+//! ## Modules
+//!
+//! - `kota_code`: Core AI code agent functionality with LLM integration, file operations,
+//!   code analysis, and task management.
+//!
+//! ## Quick Start
+//!
+//! ```rust,no_run
+//! use kota::kota_code::{AgentBuilder, ContextManager};
+//! use anyhow::Result;
+//!
+//! #[tokio::main]
+//! async fn main() -> Result<()> {
+//!     let agent = AgentBuilder::new(
+//!         "your-api-key".to_string(),
+//!         "gpt-4".to_string()
+//!     )?.build()?;
+//!
+//!     let mut context = ContextManager::new(".chat_sessions", "my-session".to_string())?;
+//!     
+//!     // Use the agent...
+//!     Ok(())
+//! }
+//! ```
 
-// Library interface for Kota
-// This exposes internal modules for testing and potential library usage
-
-pub mod agent;
-pub mod context;
-pub mod hooks;
-pub mod plan;
-pub mod tools;
+pub mod kota_code;
 
 // Re-export commonly used types for convenience
-pub use agent::{create_agent, AgentType};
-pub use context::{ContextManager, SerializableMessage};
-pub use hooks::SessionIdHook;
-pub use plan::{Plan, PlanManager, Task, TaskStatus};
-pub use tools::FileToolError;
+pub use kota_code::{
+    create_agent, AgentBuilder, AgentType, ContextManager, Plan, PlanManager, Provider,
+    SerializableMessage, SessionIdHook, SessionMetadata, Skill, SkillManager, Task, TaskStatus,
+};
+
+/// Prelude module for convenient imports
+pub mod prelude {
+    pub use crate::kota_code::prelude::*;
+}

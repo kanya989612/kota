@@ -1,5 +1,6 @@
-use crate::agent::AgentType;
-use crate::context::ContextManager;
+use kota::kota_code::agent::AgentType;
+use kota::kota_code::context::ContextManager;
+use kota::kota_code::skills::SkillManager;
 use anyhow::Result;
 use colored::*;
 use names::Generator;
@@ -28,6 +29,7 @@ pub struct KotaCli {
     pub model_name: String,
     pub agent: AgentType,
     pub context: ContextManager,
+    pub skill_manager: SkillManager,
 }
 
 impl KotaCli {
@@ -52,6 +54,9 @@ impl KotaCli {
 
         // 创建上下文管理器，使用随机生成的session_id
         let context = ContextManager::new("./.chat_sessions", session_id)?.with_max_messages(100);
+        
+        // 创建技能管理器
+        let skill_manager = SkillManager::new();
 
         Ok(Self {
             api_key,
@@ -59,6 +64,7 @@ impl KotaCli {
             model_name,
             agent,
             context,
+            skill_manager,
         })
     }
 

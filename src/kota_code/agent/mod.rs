@@ -9,8 +9,8 @@ use rig::{
     },
 };
 
-use crate::plan::PlanManager;
-use crate::tools::{
+use super::plan::PlanManager;
+use super::tools::{
     WrappedCreateDirectoryTool, WrappedDeleteFileTool, WrappedEditFileTool,
     WrappedExecuteBashCommandTool, WrappedGrepSearchTool, WrappedReadFileTool,
     WrappedScanCodebaseTool, WrappedUpdatePlanTool, WrappedWriteFileTool,
@@ -37,24 +37,54 @@ macro_rules! build_agent {
     }};
 }
 
+/// Supported LLM providers
 #[derive(Debug, Clone)]
 pub enum Provider {
+    /// OpenAI (GPT-4, GPT-3.5, etc.)
     OpenAI,
+    /// Anthropic Claude models
     Anthropic,
+    /// Cohere models
     Cohere,
+    /// DeepSeek models
     DeepSeek,
+    /// Local Ollama models
     Ollama,
 }
 
-// Agent enum to handle different provider types
+/// Agent enum to handle different provider types
+/// 
+/// This enum wraps agents from different LLM providers, allowing you to work
+/// with them through a unified interface.
 pub enum AgentType {
+    /// OpenAI agent
     OpenAI(Agent<openai::responses_api::ResponsesCompletionModel>),
+    /// Anthropic Claude agent
     Anthropic(Agent<anthropic::completion::CompletionModel>),
+    /// Cohere agent
     Cohere(Agent<cohere::CompletionModel>),
+    /// DeepSeek agent
     DeepSeek(Agent<deepseek::CompletionModel>),
+    /// Ollama local agent
     Ollama(Agent<ollama::CompletionModel>),
 }
 
+/// Builder for creating AI agents with custom configuration
+/// 
+/// # Example
+/// 
+/// ```rust,no_run
+/// use kota::{AgentBuilder, PlanManager};
+/// use anyhow::Result;
+/// 
+/// fn main() -> Result<()> {
+///     let plan_manager = PlanManager::new();
+///     let agent = AgentBuilder::new("api-key".to_string(), "gpt-4".to_string())?
+///         .with_plan_manager(plan_manager)
+///         .build()?;
+///     Ok(())
+/// }
+/// ```
 pub struct AgentBuilder {
     provider: Provider,
     api_key: String,
@@ -63,6 +93,16 @@ pub struct AgentBuilder {
 }
 
 impl AgentBuilder {
+    /// Create a new agent builder
+    /// 
+    /// # Arguments
+    /// 
+    /// * `api_key` - API key for the LLM provider
+    /// * `model_name` - Model name (e.g., "gpt-4", "claude-3-5-sonnet", "deepseek-chat")
+    /// 
+    /// # Returns
+    /// 
+    /// Returns a builder that can be configured and built into an agent
     pub fn new(api_key: String, model_name: String) -> Result<Self> {
         let provider = Self::get_provider_from_model(&model_name)?;
         Ok(Self {
@@ -73,11 +113,21 @@ impl AgentBuilder {
         })
     }
 
+    /// Set a custom plan manager for task management
+    /// 
+    /// # Arguments
+    /// 
+    /// * `manager` - A PlanManager instance for managing tasks and plans
     pub fn with_plan_manager(mut self, manager: PlanManager) -> Self {
         self.plan_manager = manager;
         self
     }
 
+    /// Build the agent with the configured settings
+    /// 
+    /// # Returns
+    /// 
+    /// Returns an AgentType that can be used to interact with the LLM
     pub fn build(self) -> Result<AgentType> {
         let tools = self.create_tools();
         let preamble = self.get_preamble();
@@ -195,7 +245,24 @@ struct AgentTools {
     update_plan: WrappedUpdatePlanTool,
 }
 
-// Convenience function for creating an agent
+/// Convenience function for creating an agent with default settings
+/// 
+/// # Arguments
+/// 
+/// * `api_key` - API key for the LLM provider
+/// * `model_name` - Model name (e.g., "gpt-4", "claude-3-5-sonnet", "deepseek-chat")
+/// 
+/// # Example
+/// 
+/// ```rust,no_run
+/// use kota::create_agent;
+/// use anyhow::Result;
+/// 
+/// fn main() -> Result<()> {
+///     let agent = create_agent("api-key".to_string(), "gpt-4".to_string())?;
+///     Ok(())
+/// }
+/// ```
 pub fn create_agent(api_key: String, model_name: String) -> Result<AgentType> {
     AgentBuilder::new(api_key, model_name)?.build()
 }

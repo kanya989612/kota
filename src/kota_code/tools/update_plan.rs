@@ -1,5 +1,5 @@
-use crate::plan::{Plan, PlanManager, TaskStatus};
-use crate::tools::FileToolError;
+use super::super::plan::{Plan, PlanManager, TaskStatus};
+use super::FileToolError;
 use colored::*;
 use rig::{completion::ToolDefinition, tool::Tool};
 use serde::{Deserialize, Serialize};
