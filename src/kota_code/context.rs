@@ -99,9 +99,11 @@ impl ContextManager {
         })
     }
 
-    pub fn with_max_messages(mut self, max_messages: usize) -> Self {
-        self.max_messages = max_messages;
-        self
+    pub fn with_max_messages(self, max_messages: usize) -> Self {
+        Self {
+            max_messages,
+            ..self
+        }
     }
 
     pub fn add_message(&mut self, message: Message) {
