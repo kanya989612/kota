@@ -137,7 +137,7 @@ impl AgentBuilder {
                 build_agent!(
                     openai::Client::new(&self.api_key),
                     &self.model_name,
-                    &preamble,
+                    preamble,
                     tools,
                     OpenAI
                 )
@@ -146,7 +146,7 @@ impl AgentBuilder {
                 build_agent!(
                     anthropic::Client::new(&self.api_key),
                     &self.model_name,
-                    &preamble,
+                    preamble,
                     tools,
                     Anthropic
                 )
@@ -155,7 +155,7 @@ impl AgentBuilder {
                 build_agent!(
                     cohere::Client::new(&self.api_key),
                     &self.model_name,
-                    &preamble,
+                    preamble,
                     tools,
                     Cohere
                 )
@@ -164,7 +164,7 @@ impl AgentBuilder {
                 build_agent!(
                     deepseek::Client::new(&self.api_key),
                     DEEPSEEK_CHAT,
-                    &preamble,
+                    preamble,
                     tools,
                     DeepSeek
                 )
@@ -173,7 +173,7 @@ impl AgentBuilder {
                 build_agent!(
                     ollama::Client::new(rig::client::Nothing),
                     &self.model_name,
-                    &preamble,
+                    preamble,
                     tools,
                     Ollama
                 )
@@ -217,7 +217,7 @@ impl AgentBuilder {
         }
     }
 
-    fn get_preamble(&self) -> String {
+    fn get_preamble(&self) -> &str {
         r#"
         Your name is Kato. You are a helpful AI code assistant with comprehensive file system and command execution access. 
         You can read, write, edit (with patches), and delete files, execute bash commands, scan codebase structures, search text in the codebase and create directories. 
@@ -229,7 +229,7 @@ impl AgentBuilder {
         - Track progress and update task status (pending, in_progress, completed, blocked)
         - Show current plan and identify next available tasks
         
-        Please provide clear and concise responses and be careful when modifying files or executing commands."#.to_string()
+        Please provide clear and concise responses and be careful when modifying files or executing commands."#
     }
 }
 
