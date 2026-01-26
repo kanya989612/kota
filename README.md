@@ -20,23 +20,30 @@ Whether you use it as a CLI tool or integrate it as a library into your own proj
 
 ## Setup
 
-### Environment Configuration
+### Configuration
 
-Before running Kota, you need to create a `.env` file with your API configuration:
+Kota uses Lua-based configuration (inspired by Neovim). Create a `.kota/config.lua` file in your project root:
 
-1. Copy the example environment file:
-   ```bash
-   cp .env.example .env
-   ```
+```lua
+kota.setup({
+  model = "deepseek-chat",
+  api_key = os.getenv("API_KEY"),
+  api_base = "https://api.deepseek.com/v1",
+  temperature = 0.7,
+})
+```
 
-2. Edit the `.env` file and configure your API settings:
-   ```env
-   API_KEY=your-api-key-here
-   MODEL_NAME=deepseek-chat
-   ```
+Set your API key as an environment variable:
 
-   - `API_KEY`: Your LLM provider API key
-   - `MODEL_NAME`: The model to use (see supported models below)
+```bash
+# Linux/Mac
+export API_KEY="your-api-key-here"
+
+# Windows PowerShell
+$env:API_KEY="your-api-key-here"
+```
+
+See [Lua Configuration Guide](guides/lua_configuration.md) for more details.
 
 ## Installation
 

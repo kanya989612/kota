@@ -10,9 +10,9 @@ pub mod kota_code;
 
 // Re-export commonly used types for convenience
 pub use kota_code::{
-    create_agent, AgentBuilder, AgentInstance, AgentType, ContextManager, Plan, PlanManager,
-    Provider, SerializableMessage, SessionIdHook, SessionMetadata, Skill, SkillManager, Task,
-    TaskStatus, ToolRegistry,
+    create_agent, AgentBuilder, AgentInstance, AgentType, ContextManager, KotaConfig, Plan,
+    PlanManager, Provider, SerializableMessage, SessionIdHook, SessionMetadata, Skill,
+    SkillManager, Task, TaskStatus, ToolRegistry,
 };
 
 /// Prelude module for convenient imports

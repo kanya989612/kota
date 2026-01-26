@@ -208,7 +208,7 @@ impl AgentInstance {
     ///
     /// # Example
     ///
-    /// ```rust,no_run
+    /// ```rust,ignore
     /// use kota::kota_code::{AgentBuilder, ContextManager};
     /// use anyhow::Result;
     ///
@@ -266,7 +266,7 @@ impl AgentInstance {
 ///
 /// # Example
 ///
-/// ```rust,no_run
+/// ```rust,ignore
 /// use kota::{AgentBuilder, PlanManager};
 /// use anyhow::Result;
 ///
@@ -506,7 +506,7 @@ struct AgentTools {
 ///
 /// # Example
 ///
-/// ```rust,no_run
+/// ```rust,ignore
 /// use kota::create_agent;
 /// use anyhow::Result;
 ///

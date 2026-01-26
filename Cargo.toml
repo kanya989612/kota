@@ -21,7 +21,6 @@ path = "src/lib.rs"
 
 [dependencies]
 tokio = { version = "1.0", features = ["full"] }
-dotenv = "0.15"
 anyhow = "1.0"
 rustyline = "14.0"
 colored = "3.0.0"
@@ -35,6 +34,7 @@ walkdir = "2.0"
 chrono = { version = "0.4", features = ["serde"] }
 ignore = "0.4"
 names = { version = "0.14.0", default-features = false }
+mlua = { version = "0.9", features = ["lua54", "vendored"] }
 
 [dev-dependencies]
 tempfile = "3.0"

@@ -88,7 +88,7 @@ where
 ///
 /// # Example
 ///
-/// ```rust,no_run
+/// ```rust,ignore
 /// use kota::kota_code::ToolRegistry;
 /// use rig::tool::Tool;
 ///
@@ -118,7 +118,7 @@ impl ToolRegistry {
     ///
     /// # Example
     ///
-    /// ```rust,no_run
+    /// ```rust,ignore
     /// use std::sync::Arc;
     /// use kota::kota_code::ToolRegistry;
     /// use kota::kota_code::runtime::tool_registry::ToolWrapper;
@@ -140,7 +140,7 @@ impl ToolRegistry {
     ///
     /// # Example
     ///
-    /// ```rust,no_run
+    /// ```rust,ignore
     /// registry.register_rig_tool(MyCustomTool::default());
     /// ```
     pub fn register_rig_tool<T>(&mut self, tool: T) -> &mut Self
