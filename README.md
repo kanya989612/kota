@@ -98,6 +98,7 @@ async fn main() -> Result<()> {
 - **Context Management**: Persistent conversation history with session support
 - **Plan Management**: Structured task execution with dependencies
 - **Skills System**: Specialized agent behaviors for different tasks
+- **Tool Registry**: Extensible tool system for custom functionality
 - **Built-in Tools**: File operations, code scanning, grep search, and more
 
 ## Supported Models

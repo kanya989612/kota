@@ -10,14 +10,18 @@ use rig::{
     streaming::StreamingPrompt,
 };
 
+use crate::prelude::KotaTool;
+
 use super::context::ContextManager;
 use super::plan::PlanManager;
+use super::runtime::ToolRegistry;
 use super::skills::SkillManager;
 use super::tools::{
     WrappedCreateDirectoryTool, WrappedDeleteFileTool, WrappedEditFileTool,
     WrappedExecuteBashCommandTool, WrappedGrepSearchTool, WrappedReadFileTool,
     WrappedScanCodebaseTool, WrappedUpdatePlanTool, WrappedWriteFileTool,
 };
+use std::sync::{Arc, RwLock};
 
 macro_rules! build_agent {
     ($client_expr:expr, $model_name:expr, $preamble:expr, $tools:expr, $variant:ident) => {{
@@ -91,6 +95,7 @@ pub struct AgentInstance {
     pub agent: AgentType,
     pub context: Option<ContextManager>,
     pub skill_manager: Option<SkillManager>,
+    pub tool_registry: Arc<RwLock<ToolRegistry>>,
 }
 
 impl AgentInstance {
@@ -102,6 +107,11 @@ impl AgentInstance {
     /// Get the skill manager
     pub fn skill_manager(&self) -> Option<&SkillManager> {
         self.skill_manager.as_ref()
+    }
+
+    /// Get the tool registry
+    pub fn tool_registry(&self) -> Arc<RwLock<ToolRegistry>> {
+        Arc::clone(&self.tool_registry)
     }
 
     /// Get mutable context manager
@@ -215,7 +225,7 @@ impl AgentInstance {
     /// }
     /// ```
     pub async fn chat(&mut self, input: &str) -> Result<rig::agent::FinalResponse> {
-        use super::hooks::SessionIdHook;
+        use super::runtime::SessionIdHook;
         use rig::completion::Message;
 
         // 添加用户消息到上下文
@@ -275,6 +285,7 @@ pub struct AgentBuilder {
     plan_manager: PlanManager,
     context: Option<ContextManager>,
     skill_manager: Option<SkillManager>,
+    tool_registry: Arc<RwLock<ToolRegistry>>,
 }
 
 impl AgentBuilder {
@@ -297,6 +308,7 @@ impl AgentBuilder {
             plan_manager: PlanManager::new(),
             context: None,
             skill_manager: None,
+            tool_registry: Arc::new(RwLock::new(ToolRegistry::new())),
         })
     }
 
@@ -327,6 +339,32 @@ impl AgentBuilder {
     /// * `skill_manager` - A SkillManager instance for managing agent skills
     pub fn with_skill_manager(mut self, skill_manager: SkillManager) -> Self {
         self.skill_manager = Some(skill_manager);
+        self
+    }
+
+    /// Set a custom tool registry
+    ///
+    /// This replaces the default tool registry. If you want to keep default tools
+    /// and add custom ones, use `tool_registry()` after building the agent.
+    ///
+    /// # Arguments
+    ///
+    /// * `registry` - A ToolRegistry instance for managing custom tools
+    pub fn with_tool_registry(mut self, registry: ToolRegistry) -> Self {
+        self.tool_registry = Arc::new(RwLock::new(registry));
+        self
+    }
+
+    /// Add a custom tool to the existing registry
+    ///
+    /// This keeps all default tools and adds your custom tool.
+    ///
+    /// # Arguments
+    ///
+    /// * `tool` - A tool that implements `KotaTool` trait
+    pub fn with_tool(self, tool: Arc<dyn KotaTool>) -> Self
+    {
+        self.tool_registry.write().unwrap().register_tool(tool);
         self
     }
 
@@ -391,6 +429,7 @@ impl AgentBuilder {
             agent,
             context: self.context,
             skill_manager: self.skill_manager,
+            tool_registry: self.tool_registry,
         })
     }
 

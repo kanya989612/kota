@@ -12,7 +12,7 @@ pub mod kota_code;
 pub use kota_code::{
     create_agent, AgentBuilder, AgentInstance, AgentType, ContextManager, Plan, PlanManager,
     Provider, SerializableMessage, SessionIdHook, SessionMetadata, Skill, SkillManager, Task,
-    TaskStatus,
+    TaskStatus, ToolRegistry,
 };
 
 /// Prelude module for convenient imports

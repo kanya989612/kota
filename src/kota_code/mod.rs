@@ -47,16 +47,16 @@
 // Core modules
 pub mod agent;
 pub mod context;
-pub mod hooks;
 pub mod plan;
+pub mod runtime;
 pub mod skills;
 pub mod tools;
 
 // Re-export commonly used types for convenience
 pub use agent::{create_agent, AgentBuilder, AgentInstance, AgentType, Provider};
 pub use context::{ContextManager, SerializableMessage, SessionMetadata};
-pub use hooks::SessionIdHook;
 pub use plan::{Plan, PlanManager, Task, TaskStatus};
+pub use runtime::{KotaTool, SessionIdHook, ToolRegistry, ToolWrapper};
 pub use skills::{Skill, SkillManager};
 pub use tools::{
     FileToolError, WrappedCreateDirectoryTool, WrappedDeleteFileTool, WrappedEditFileTool,
@@ -68,8 +68,8 @@ pub use tools::{
 pub mod prelude {
     pub use super::agent::{create_agent, AgentBuilder, AgentInstance, AgentType, Provider};
     pub use super::context::{ContextManager, SerializableMessage, SessionMetadata};
-    pub use super::hooks::SessionIdHook;
     pub use super::plan::{Plan, PlanManager, Task, TaskStatus};
+    pub use super::runtime::{KotaTool, SessionIdHook, ToolRegistry, ToolWrapper};
     pub use super::skills::{Skill, SkillManager};
     pub use super::tools::FileToolError;
 }
