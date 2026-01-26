@@ -28,7 +28,7 @@ macro_rules! build_agent {
         let client = $client_expr?;
         let agent = client
             .agent($model_name)
-            .preamble($preamble)
+            .preamble(&$preamble)
             .max_tokens(4096)
             .tool($tools.read_file)
             .tool($tools.write_file)
@@ -241,10 +241,21 @@ impl AgentInstance {
         let hook = SessionIdHook::new(session_id);
 
         // 获取历史消息
-        let history = self
+        let mut history = self
             .context()
             .map(|c| c.get_messages().to_vec())
             .unwrap_or_default();
+
+        // 如果有激活的 skill，在历史消息前添加 skill instructions
+        if let Some(skill_manager) = &self.skill_manager {
+            if let Some(skill) = skill_manager.get_active_skill() {
+                let skill_prompt = format!(
+                    "[ACTIVE SKILL: {}]\n{}\n\n{}",
+                    skill.name, skill.description, skill.instructions
+                );
+                history.insert(0, Message::user(&skill_prompt));
+            }
+        }
 
         // 执行流式聊天
         let response = self.stream_chat(input, hook, history).await?;

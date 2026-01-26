@@ -357,10 +357,6 @@ impl KotaCli {
                     active_marker
                 );
                 println!("   {}", skill.description.dimmed());
-                println!(
-                    "   Tools: {}",
-                    skill.enabled_tools.join(", ").bright_yellow()
-                );
                 println!();
             }
 
@@ -387,11 +383,8 @@ impl KotaCli {
                 );
                 if let Some(skill) = skill_manager.get_skill(skill_name) {
                     println!("   {}", skill.description.dimmed());
-                    println!(
-                        "   Available tools: {}",
-                        skill.enabled_tools.join(", ").bright_yellow()
-                    );
                 }
+                println!("{} Skill will be applied to next message", "💡".bright_blue());
             }
             Err(e) => {
                 println!("{} Failed to activate skill: {}", "❌".red(), e);
