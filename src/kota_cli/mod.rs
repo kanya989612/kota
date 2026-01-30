@@ -1,15 +1,17 @@
 use anyhow::Result;
 use colored::*;
-use kota::kota_code::agent::{AgentBuilder, AgentInstance};
-use kota::kota_code::context::ContextManager;
-use kota::kota_code::skills::SkillManager;
+use crate::kota_code::agent::{AgentBuilder, AgentInstance};
+use crate::kota_code::context::ContextManager;
+use crate::kota_code::skills::SkillManager;
 use rustyline::error::ReadlineError;
 use rustyline::Editor;
 
 mod command;
+pub mod command_registry;
 mod render;
 mod tab;
 
+pub use command_registry::{CommandRegistry, parse_command_input};
 use tab::KotaHelper;
 
 const LOGO: &str = r#"
@@ -27,6 +29,7 @@ pub struct KotaCli {
     pub api_base: String,
     pub model_name: String,
     pub api_key: String,
+    pub command_registry: Option<CommandRegistry>,
 }
 
 impl KotaCli {
@@ -36,6 +39,7 @@ impl KotaCli {
         model_name: String,
         context: ContextManager,
         skill_manager: SkillManager,
+        command_registry: Option<CommandRegistry>,
     ) -> Result<Self> {
         let agent_instance = AgentBuilder::new(api_key.clone(), model_name.clone())?
             .with_context(context)
@@ -47,6 +51,7 @@ impl KotaCli {
             api_base,
             model_name,
             api_key,
+            command_registry,
         })
     }
 

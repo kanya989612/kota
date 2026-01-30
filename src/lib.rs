@@ -4,16 +4,21 @@
 //!
 //! - `kota_code`: Core AI code agent functionality with LLM integration, file operations,
 //!   code analysis, and task management.
+//! - `kota_cli`: Command-line interface components
 //!
 
+pub mod kota_cli;
 pub mod kota_code;
 
 // Re-export commonly used types for convenience
 pub use kota_code::{
-    create_agent, AgentBuilder, AgentInstance, AgentType, ContextManager, KotaConfig, Plan,
+    create_agent, AgentBuilder, AgentInstance, AgentType, CommandDef, ContextManager, KotaConfig, Plan,
     PlanManager, Provider, SerializableMessage, SessionIdHook, SessionMetadata, Skill,
     SkillManager, Task, TaskStatus, ToolRegistry,
 };
+
+// Re-export CLI components for testing
+pub use kota_cli::{CommandRegistry, parse_command_input};
 
 /// Prelude module for convenient imports
 pub mod prelude {

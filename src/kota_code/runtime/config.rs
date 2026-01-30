@@ -1,6 +1,16 @@
 use anyhow::Result;
 use mlua::prelude::*;
 use std::path::Path;
+use std::collections::HashMap;
+
+/// Command definition that can be either a string or a Lua function
+#[derive(Debug, Clone)]
+pub enum CommandDef {
+    /// Simple string template
+    String(String),
+    /// Lua function stored as bytecode
+    Function(Vec<u8>),
+}
 
 /// Configuration loaded from Lua config file
 #[derive(Debug, Clone)]
@@ -11,6 +21,7 @@ pub struct KotaConfig {
     pub temperature: Option<f64>,
     pub enabled_tools: Vec<String>,
     pub disabled_tools: Vec<String>,
+    pub commands: HashMap<String, CommandDef>,
 }
 
 impl Default for KotaConfig {
@@ -22,6 +33,7 @@ impl Default for KotaConfig {
             temperature: Some(0.7),
             enabled_tools: vec![],
             disabled_tools: vec![],
+            commands: HashMap::new(),
         }
     }
 }
@@ -115,6 +127,28 @@ impl KotaConfig {
                 for pair in disabled.pairs::<LuaValue, String>() {
                     if let Ok((_, tool)) = pair {
                         config.disabled_tools.push(tool);
+                    }
+                }
+            }
+        }
+
+        // Parse commands configuration
+        if let Ok(commands) = captured.get::<_, LuaTable>("commands") {
+            for pair in commands.pairs::<String, LuaValue>() {
+                if let Ok((name, value)) = pair {
+                    match value {
+                        LuaValue::String(s) => {
+                            // Simple string command
+                            config.commands.insert(name, CommandDef::String(s.to_str()?.to_string()));
+                        }
+                        LuaValue::Function(func) => {
+                            // Function command - dump to bytecode
+                            let bytecode = func.dump(false);
+                            config.commands.insert(name, CommandDef::Function(bytecode));
+                        }
+                        _ => {
+                            // Ignore other types
+                        }
                     }
                 }
             }

@@ -1,11 +1,9 @@
 use anyhow::{Ok, Result};
 use colored::Colorize;
-use kota::{ContextManager, KotaConfig, SkillManager};
+use kota::{ContextManager, KotaConfig, SkillManager, CommandRegistry};
 use names::Generator;
 
-mod kota_cli;
-
-use kota_cli::KotaCli;
+use kota::kota_cli::KotaCli;
 
 #[tokio::main]
 async fn main() -> Result<()> {
@@ -31,6 +29,26 @@ async fn main() -> Result<()> {
         session_id.bright_yellow()
     );
 
+    // Initialize command registry if commands are defined
+    let command_registry = if !config.commands.is_empty() {
+        match CommandRegistry::new(&config) {
+            std::result::Result::Ok(registry) => {
+                println!(
+                    "{} {} custom commands loaded",
+                    "🔧".bright_cyan(),
+                    registry.list_commands().len().to_string().bright_yellow()
+                );
+                Some(registry)
+            }
+            Err(e) => {
+                println!("{} Failed to initialize command registry: {}", "⚠️".yellow(), e);
+                None
+            }
+        }
+    } else {
+        None
+    };
+
     let context = ContextManager::new("./.chat_sessions", session_id)?.with_max_messages(100);
     let skill_manager = SkillManager::new();
     let mut cli = KotaCli::new(
@@ -39,6 +57,7 @@ async fn main() -> Result<()> {
         config.model,
         context,
         skill_manager,
+        command_registry,
     )?;
     cli.run().await?;
 

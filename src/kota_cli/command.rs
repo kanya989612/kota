@@ -1,8 +1,9 @@
 use anyhow::Result;
 use colored::*;
-use kota::kota_code::context::{ContextManager, SerializableMessage};
+use crate::kota_code::context::{ContextManager, SerializableMessage};
 
 use super::KotaCli;
+use super::command_registry::parse_command_input;
 
 impl KotaCli {
     pub async fn handle_command(&mut self, input: &str) -> Result<bool> {
@@ -45,6 +46,16 @@ impl KotaCli {
                 }
             }
             _ if input.starts_with('/') => {
+                // Check if it's a custom command
+                if let Some(ref registry) = self.command_registry {
+                    let cmd_name = input.strip_prefix('/').unwrap_or("").split_whitespace().next().unwrap_or("");
+                    
+                    if registry.has_command(cmd_name) {
+                        self.handle_custom_command(input).await?;
+                        return Ok(true);
+                    }
+                }
+                
                 println!("{} Unknown command: {}", "❌".red(), input);
                 println!("{} Type /help for available commands", "💡".bright_blue());
             }
@@ -122,6 +133,20 @@ impl KotaCli {
             "/delete <session_id>".bright_green()
         );
         println!("  {} - Show this help message", "/help".bright_green());
+        
+        // Show custom commands if available
+        if let Some(ref registry) = self.command_registry {
+            let custom_commands = registry.list_commands();
+            if !custom_commands.is_empty() {
+                println!();
+                println!("{}", "🔧 Custom Commands:".bright_cyan());
+                for cmd in custom_commands {
+                    let cmd_type = registry.command_type(&cmd).unwrap_or("unknown");
+                    println!("  {} ({})", format!("/{}", cmd).bright_green(), cmd_type.dimmed());
+                }
+            }
+        }
+        
         println!();
         println!(
             "{}",
@@ -406,6 +431,57 @@ impl KotaCli {
         skill_manager.deactivate_skill();
         println!("{} Skill deactivated", "✅".bright_green());
         println!();
+        Ok(())
+    }
+
+    async fn handle_custom_command(&mut self, input: &str) -> Result<()> {
+        let registry = self.command_registry.as_ref()
+            .ok_or_else(|| anyhow::anyhow!("Command registry not initialized"))?;
+
+        // Parse command input (remove leading /)
+        let input_without_slash = input.strip_prefix('/').unwrap_or(input);
+        let (cmd_name, args) = parse_command_input(input_without_slash)?;
+
+        // Execute command to get prompt
+        match registry.execute(&cmd_name, args.clone()) {
+            Ok(prompt) => {
+                println!("{} Executing custom command: {}", "🔧".bright_blue(), cmd_name.bright_cyan());
+                if !args.is_empty() {
+                    println!("   Arguments: {:?}", args);
+                }
+                println!("   Prompt: {}", prompt.dimmed());
+                println!();
+                
+                // Send prompt to AI
+                println!("{}", "🧠 Thinking...".yellow());
+                println!("{}", "● kota:".blue());
+
+                let response_result = self.agent_instance.chat(&prompt).await;
+
+                println!();
+
+                match response_result {
+                    Ok(resp) => {
+                        println!(
+                            "{} Total tokens used: {}",
+                            "📊".bright_blue(),
+                            resp.usage().total_tokens
+                        );
+                    }
+                    Err(e) => {
+                        println!("{} Failed to get AI response: {}", "❌".red(), e);
+                        println!(
+                            "{} Please check your API key and network connection",
+                            "💡".bright_blue()
+                        );
+                    }
+                }
+            }
+            Err(e) => {
+                println!("{} Failed to execute command '{}': {}", "❌".red(), cmd_name, e);
+            }
+        }
+        
         Ok(())
     }
 }

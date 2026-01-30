@@ -30,6 +30,24 @@ kota.setup({
   api_key = os.getenv("API_KEY"),
   api_base = "https://api.deepseek.com/v1",
   temperature = 0.7,
+  
+  -- Custom commands with parameter support
+  commands = {
+    -- Simple string commands
+    ["fix"] = "analyze and fix the current file",
+    
+    -- Function commands with parameters
+    ["test"] = function(args)
+      local file = args.file or "current file"
+      return "run tests for " .. file
+    end,
+    
+    ["review"] = function(args)
+      local file = args.file or "current file"
+      local aspect = args.aspect or "general quality"
+      return string.format("review %s focusing on %s", file, aspect)
+    end,
+  },
 })
 ```
 
@@ -106,6 +124,7 @@ async fn main() -> Result<()> {
 - **Plan Management**: Structured task execution with dependencies
 - **Skills System**: Specialized agent behaviors for different tasks
 - **Tool Registry**: Extensible tool system for custom functionality
+- **Custom Commands**: Define parameterized commands in Lua configuration
 - **Built-in Tools**: File operations, code scanning, grep search, and more
 
 ## Supported Models
@@ -122,6 +141,8 @@ Kota supports various LLM providers:
 
 ## CLI Features
 
+Kota provides a powerful command-line interface with built-in commands, custom command support, and intelligent tab completion.
+
 ### Interactive Commands
 
 Kota provides an interactive CLI with the following commands:
@@ -136,6 +157,46 @@ Kota provides an interactive CLI with the following commands:
 - `/load <session_id>` - Load specific session
 - `/sessions` - List all sessions
 - `/delete <session_id>` - Delete a specific session
+
+### Custom Commands
+
+Kota supports custom commands defined in your Lua configuration with parameter support:
+
+```bash
+# Simple commands
+/fix
+
+# Named parameters
+/test file=main.rs
+/review file=src/lib.rs aspect=security
+
+# Positional parameters
+/refactor main.rs "use builder pattern"
+
+# Mixed parameters
+/review main.rs aspect=performance
+```
+
+Custom commands are defined in your `.kota/config.lua`:
+
+```lua
+commands = {
+  -- Simple string commands
+  ["fix"] = "analyze and fix the current file",
+  
+  -- Function commands with parameters
+  ["test"] = function(args)
+    local file = args.file or "current file"
+    return "run tests for " .. file
+  end,
+  
+  ["review"] = function(args)
+    local file = args.file or "current file"
+    local aspect = args.aspect or "general quality"
+    return string.format("review %s focusing on %s", file, aspect)
+  end,
+}
+```
 
 ### Tab Completion
 

@@ -19,8 +19,20 @@ kota.setup({
   },
   
   commands = {
+    -- Simple string commands
     ["fix"] = "analyze and fix the current file",
-    ["test"] = "run tests for current file",
+    
+    -- Function commands with parameters
+    ["test"] = function(args)
+      local file = args.file or "current file"
+      return "run tests for " .. file
+    end,
+    
+    ["review"] = function(args)
+      local file = args.file or "current file"
+      local aspect = args.aspect or "general quality"
+      return string.format("review %s focusing on %s", file, aspect)
+    end,
   },
   
   hooks = {
@@ -70,17 +82,57 @@ Available tools:
 - `exec_cmd` - Execute shell commands
 - `update_plan` - Manage task plans
 
-### Commands (Coming Soon)
+### Commands
 
-Define custom command shortcuts:
+Define custom command shortcuts with parameter support:
 
 ```lua
 commands = {
+  -- Simple string commands
   ["fix"] = "analyze and fix the current file",
-  ["test"] = "run tests for current file",
-  ["review"] = "perform code review on current file",
+  
+  -- Function commands with parameters
+  ["test"] = function(args)
+    local file = args.file or "current file"
+    return "run tests for " .. file
+  end,
+  
+  ["review"] = function(args)
+    local file = args.file or "current file"
+    local aspect = args.aspect or "general quality"
+    return string.format("review %s focusing on %s", file, aspect)
+  end,
+  
+  ["refactor"] = function(args)
+    local file = args.file or args["1"] or "current file"
+    local pattern = args.pattern or args["2"] or "improve code structure"
+    return string.format("refactor %s to %s", file, pattern)
+  end,
 }
 ```
+
+#### Using Custom Commands
+
+```bash
+# Simple commands
+/fix
+
+# Named parameters
+/test file=main.rs
+/review file=src/lib.rs aspect=security
+
+# Positional parameters
+/refactor main.rs "use builder pattern"
+
+# Mixed parameters
+/review main.rs aspect=performance
+```
+
+#### Parameter Types
+
+- **Named parameters**: `key=value` format, accessed as `args.key`
+- **Positional parameters**: Space-separated values, accessed as `args["1"]`, `args["2"]`, etc.
+- **Default values**: Use `or` operator for fallback values
 
 ### Hooks (Coming Soon)
 
