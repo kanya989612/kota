@@ -13,8 +13,8 @@ pub mod kota_code;
 // Re-export commonly used types for convenience
 pub use kota_code::{
     create_agent, AgentBuilder, AgentInstance, AgentType, CommandDef, ContextManager, KotaConfig,
-    Plan, PlanManager, Provider, SerializableMessage, SessionIdHook, SessionMetadata, Skill,
-    SkillManager, Task, TaskStatus, ToolRegistry,
+    McpClient, McpManager, Plan, PlanManager, Provider, SerializableMessage, SessionIdHook,
+    SessionMetadata, Skill, SkillManager, Task, TaskStatus, ToolRegistry,
 };
 
 // Re-export CLI components for testing
