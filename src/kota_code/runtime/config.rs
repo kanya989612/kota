@@ -1,7 +1,7 @@
 use anyhow::Result;
 use mlua::prelude::*;
-use std::path::Path;
 use std::collections::HashMap;
+use std::path::Path;
 
 /// Command definition that can be either a string or a Lua function
 #[derive(Debug, Clone)]
@@ -57,7 +57,8 @@ impl KotaConfig {
             .map_err(|e| anyhow::anyhow!("Failed to read config file: {}", e))?;
 
         // Create a custom os.getenv function that reads from Rust environment
-        lua.load(r#"
+        lua.load(
+            r#"
             _kota_config = nil
             kota = {
                 setup = function(args)
@@ -70,18 +71,22 @@ impl KotaConfig {
             os.getenv = function(name)
                 return _rust_getenv(name)
             end
-        "#).exec()?;
-        
+        "#,
+        )
+        .exec()?;
+
         // Register Rust function to get environment variables
         let globals = lua.globals();
-        globals.set("_rust_getenv", lua.create_function(|_, name: String| {
-            Ok(std::env::var(&name).ok())
-        })?)?;
+        globals.set(
+            "_rust_getenv",
+            lua.create_function(|_, name: String| Ok(std::env::var(&name).ok()))?,
+        )?;
 
         // Execute the config file
-        lua.load(&config_content).exec()
+        lua.load(&config_content)
+            .exec()
             .map_err(|e| anyhow::anyhow!("Failed to execute Lua config: {}", e))?;
-        
+
         // Parse the configuration
         Self::parse_from_lua(&lua, &mut config)?;
 
@@ -90,7 +95,9 @@ impl KotaConfig {
 
     fn parse_from_lua(lua: &Lua, config: &mut KotaConfig) -> Result<()> {
         // Get the captured config
-        let captured: LuaTable = lua.globals().get("_kota_config")
+        let captured: LuaTable = lua
+            .globals()
+            .get("_kota_config")
             .map_err(|e| anyhow::anyhow!("Config not properly initialized: {}", e))?;
 
         // Parse model
@@ -139,7 +146,9 @@ impl KotaConfig {
                     match value {
                         LuaValue::String(s) => {
                             // Simple string command
-                            config.commands.insert(name, CommandDef::String(s.to_str()?.to_string()));
+                            config
+                                .commands
+                                .insert(name, CommandDef::String(s.to_str()?.to_string()));
                         }
                         LuaValue::Function(func) => {
                             // Function command - dump to bytecode
@@ -168,7 +177,7 @@ impl KotaConfig {
     /// Returns an error if the config file doesn't exist or has syntax errors
     pub fn load() -> Result<Self> {
         let config_path = ".kota/config.lua";
-        
+
         if !Path::new(config_path).exists() {
             return Err(anyhow::anyhow!(
                 "Configuration file not found: {}\n\
@@ -176,7 +185,7 @@ impl KotaConfig {
                 config_path
             ));
         }
-        
+
         Self::from_lua_file(config_path)
     }
 }

@@ -1,9 +1,9 @@
+use crate::kota_code::context::{ContextManager, SerializableMessage};
 use anyhow::Result;
 use colored::*;
-use crate::kota_code::context::{ContextManager, SerializableMessage};
 
-use super::KotaCli;
 use super::command_registry::parse_command_input;
+use super::KotaCli;
 
 impl KotaCli {
     pub async fn handle_command(&mut self, input: &str) -> Result<bool> {
@@ -48,14 +48,19 @@ impl KotaCli {
             _ if input.starts_with('/') => {
                 // Check if it's a custom command
                 if let Some(ref registry) = self.command_registry {
-                    let cmd_name = input.strip_prefix('/').unwrap_or("").split_whitespace().next().unwrap_or("");
-                    
+                    let cmd_name = input
+                        .strip_prefix('/')
+                        .unwrap_or("")
+                        .split_whitespace()
+                        .next()
+                        .unwrap_or("");
+
                     if registry.has_command(cmd_name) {
                         self.handle_custom_command(input).await?;
                         return Ok(true);
                     }
                 }
-                
+
                 println!("{} Unknown command: {}", "❌".red(), input);
                 println!("{} Type /help for available commands", "💡".bright_blue());
             }
@@ -111,7 +116,7 @@ impl KotaCli {
             "/delete <session_id>".bright_green()
         );
         println!("  {} - Show this help message", "/help".bright_green());
-        
+
         // Show custom commands if available
         if let Some(ref registry) = self.command_registry {
             let custom_commands = registry.list_commands();
@@ -120,11 +125,15 @@ impl KotaCli {
                 println!("{}", "🔧 Custom Commands:".bright_cyan());
                 for cmd in custom_commands {
                     let cmd_type = registry.command_type(&cmd).unwrap_or("unknown");
-                    println!("  {} ({})", format!("/{}", cmd).bright_green(), cmd_type.dimmed());
+                    println!(
+                        "  {} ({})",
+                        format!("/{}", cmd).bright_green(),
+                        cmd_type.dimmed()
+                    );
                 }
             }
         }
-        
+
         println!();
         println!(
             "{}",
@@ -387,7 +396,10 @@ impl KotaCli {
                 if let Some(skill) = skill_manager.get_skill(skill_name) {
                     println!("   {}", skill.description.dimmed());
                 }
-                println!("{} Skill will be applied to next message", "💡".bright_blue());
+                println!(
+                    "{} Skill will be applied to next message",
+                    "💡".bright_blue()
+                );
             }
             Err(e) => {
                 println!("{} Failed to activate skill: {}", "❌".red(), e);
@@ -413,7 +425,9 @@ impl KotaCli {
     }
 
     async fn handle_custom_command(&mut self, input: &str) -> Result<()> {
-        let registry = self.command_registry.as_ref()
+        let registry = self
+            .command_registry
+            .as_ref()
             .ok_or_else(|| anyhow::anyhow!("Command registry not initialized"))?;
 
         // Parse command input (remove leading /)
@@ -423,21 +437,30 @@ impl KotaCli {
         // Execute command to get prompt
         match registry.execute(&cmd_name, args.clone()) {
             Ok(prompt) => {
-                println!("{} Executing custom command: {}", "🔧".bright_blue(), cmd_name.bright_cyan());
+                println!(
+                    "{} Executing custom command: {}",
+                    "🔧".bright_blue(),
+                    cmd_name.bright_cyan()
+                );
                 if !args.is_empty() {
                     println!("   Arguments: {:?}", args);
                 }
                 println!("   Prompt: {}", prompt.dimmed());
                 println!();
-                
+
                 // Send prompt to AI
                 self.handle_ai_chat(&prompt).await?;
             }
             Err(e) => {
-                println!("{} Failed to execute command '{}': {}", "❌".red(), cmd_name, e);
+                println!(
+                    "{} Failed to execute command '{}': {}",
+                    "❌".red(),
+                    cmd_name,
+                    e
+                );
             }
         }
-        
+
         Ok(())
     }
 
@@ -465,7 +488,7 @@ impl KotaCli {
                 );
             }
         }
-        
+
         Ok(())
     }
 }

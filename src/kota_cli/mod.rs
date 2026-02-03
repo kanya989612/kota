@@ -1,8 +1,8 @@
-use anyhow::Result;
-use colored::*;
 use crate::kota_code::agent::{AgentBuilder, AgentInstance};
 use crate::kota_code::context::ContextManager;
 use crate::kota_code::skills::SkillManager;
+use anyhow::Result;
+use colored::*;
 use rustyline::error::ReadlineError;
 use rustyline::Editor;
 
@@ -11,7 +11,7 @@ pub mod command_registry;
 mod render;
 mod tab;
 
-pub use command_registry::{CommandRegistry, parse_command_input};
+pub use command_registry::{parse_command_input, CommandRegistry};
 use tab::KotaHelper;
 
 const LOGO: &str = r#"

@@ -9,7 +9,7 @@ use std::path::{Path, PathBuf};
 pub struct Skill {
     pub name: String,
     pub description: String,
-    pub instructions: String,  // Markdown body
+    pub instructions: String, // Markdown body
     #[serde(default)]
     pub dependencies: Vec<String>,
 }
@@ -59,7 +59,7 @@ impl SkillManager {
     fn parse_skill_md(path: &Path) -> Result<Skill> {
         let content = fs::read_to_string(path)?;
         let parts: Vec<&str> = content.splitn(3, "---").collect();
-        
+
         if parts.len() < 3 {
             return Err(anyhow::anyhow!("Invalid SKILL.md format"));
         }
@@ -84,7 +84,12 @@ impl SkillManager {
             }
         }
 
-        Ok(Skill { name, description, instructions, dependencies })
+        Ok(Skill {
+            name,
+            description,
+            instructions,
+            dependencies,
+        })
     }
 
     /// 创建默认技能
@@ -101,7 +106,10 @@ impl SkillManager {
         for (name, desc, inst) in defaults {
             let dir = self.skills_dir.join(name);
             fs::create_dir_all(&dir)?;
-            let content = format!("---\nname: {}\ndescription: {}\n---\n\n{}", name, desc, inst);
+            let content = format!(
+                "---\nname: {}\ndescription: {}\n---\n\n{}",
+                name, desc, inst
+            );
             fs::write(dir.join("SKILL.md"), content)?;
         }
         Ok(())
@@ -117,10 +125,7 @@ impl SkillManager {
         if let Some(skill) = self.get_active_skill() {
             format!(
                 "{}\n\n[ACTIVE SKILL: {}]\n{}\n\n{}",
-                base_preamble,
-                skill.name,
-                skill.description,
-                skill.instructions
+                base_preamble, skill.name, skill.description, skill.instructions
             )
         } else {
             base_preamble.to_string()
@@ -128,12 +133,20 @@ impl SkillManager {
     }
 
     /// 创建新技能
-    pub fn create_skill(&mut self, name: &str, description: &str, instructions: &str) -> Result<()> {
+    pub fn create_skill(
+        &mut self,
+        name: &str,
+        description: &str,
+        instructions: &str,
+    ) -> Result<()> {
         let dir = self.skills_dir.join(name);
         fs::create_dir_all(&dir)?;
-        let content = format!("---\nname: {}\ndescription: {}\n---\n\n{}", name, description, instructions);
+        let content = format!(
+            "---\nname: {}\ndescription: {}\n---\n\n{}",
+            name, description, instructions
+        );
         fs::write(dir.join("SKILL.md"), content)?;
-        
+
         let skill = Skill {
             name: name.to_string(),
             description: description.to_string(),
@@ -182,6 +195,8 @@ impl SkillManager {
     }
 
     pub fn get_active_skill(&self) -> Option<&Skill> {
-        self.active_skill.as_ref().and_then(|name| self.skills.get(name))
+        self.active_skill
+            .as_ref()
+            .and_then(|name| self.skills.get(name))
     }
 }

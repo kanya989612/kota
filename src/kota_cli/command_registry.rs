@@ -14,9 +14,10 @@ impl CommandRegistry {
     /// Create a new command registry from config
     pub fn new(config: &KotaConfig) -> Result<Self> {
         let lua = Lua::new();
-        
+
         // Setup basic Lua environment
-        lua.load(r#"
+        lua.load(
+            r#"
             -- Helper function to convert args table to string
             function _format_args(args)
                 if type(args) ~= "table" then
@@ -29,7 +30,9 @@ impl CommandRegistry {
                 end
                 return result
             end
-        "#).exec()?;
+        "#,
+        )
+        .exec()?;
 
         Ok(Self {
             lua,
@@ -48,7 +51,9 @@ impl CommandRegistry {
     ///
     /// Returns the formatted prompt string
     pub fn execute(&self, name: &str, args: HashMap<String, String>) -> Result<String> {
-        let cmd_def = self.commands.get(name)
+        let cmd_def = self
+            .commands
+            .get(name)
             .ok_or_else(|| anyhow!("Command '{}' not found", name))?;
 
         match cmd_def {
@@ -59,16 +64,16 @@ impl CommandRegistry {
             CommandDef::Function(bytecode) => {
                 // Load function from bytecode
                 let func: LuaFunction = self.lua.load(bytecode).into_function()?;
-                
+
                 // Convert args to Lua table
                 let lua_args = self.lua.create_table()?;
                 for (key, value) in args {
                     lua_args.set(key, value)?;
                 }
-                
+
                 // Call function with args
                 let result: LuaValue = func.call(lua_args)?;
-                
+
                 // Convert result to string
                 match result {
                     LuaValue::String(s) => Ok(s.to_str()?.to_string()),
@@ -114,7 +119,7 @@ impl CommandRegistry {
 /// Returns (command_name, args_map)
 pub fn parse_command_input(input: &str) -> Result<(String, HashMap<String, String>)> {
     let parts: Vec<&str> = input.split_whitespace().collect();
-    
+
     if parts.is_empty() {
         return Err(anyhow!("Empty command"));
     }

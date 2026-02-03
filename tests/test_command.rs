@@ -1,8 +1,8 @@
-use std::collections::HashMap;
 use mlua::prelude::*;
+use std::collections::HashMap;
 
 // Import the types we need from the kota crate
-use kota::{CommandDef, KotaConfig, CommandRegistry, parse_command_input};
+use kota::{parse_command_input, CommandDef, CommandRegistry, KotaConfig};
 
 #[cfg(test)]
 mod tests {
@@ -51,20 +51,27 @@ mod tests {
     #[test]
     fn test_function_command() {
         let lua = Lua::new();
-        let func: LuaFunction = lua.load(r#"
+        let func: LuaFunction = lua
+            .load(
+                r#"
             function(args)
                 local file = args.file or "current file"
                 return "run tests for " .. file
             end
-        "#).eval().unwrap();
-        
+        "#,
+            )
+            .eval()
+            .unwrap();
+
         let bytecode = func.dump(false);
 
         let mut config = KotaConfig::default();
-        config.commands.insert("test".to_string(), CommandDef::Function(bytecode));
+        config
+            .commands
+            .insert("test".to_string(), CommandDef::Function(bytecode));
 
         let registry = CommandRegistry::new(&config).unwrap();
-        
+
         // Without args
         let result = registry.execute("test", HashMap::new()).unwrap();
         assert_eq!(result, "run tests for current file");

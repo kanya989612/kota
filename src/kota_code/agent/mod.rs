@@ -373,8 +373,7 @@ impl AgentBuilder {
     /// # Arguments
     ///
     /// * `tool` - A tool that implements `KotaTool` trait
-    pub fn with_tool(self, tool: Arc<dyn KotaTool>) -> Self
-    {
+    pub fn with_tool(self, tool: Arc<dyn KotaTool>) -> Self {
         self.tool_registry.write().unwrap().register_tool(tool);
         self
     }

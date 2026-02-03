@@ -63,6 +63,39 @@ $env:API_KEY="your-api-key-here"
 
 See [Lua Configuration Guide](guides/lua_configuration.md) for more details.
 
+### .kota Directory Structure
+
+Kota uses a `.kota` directory in your project root for all configuration and extensions:
+
+```
+.kota/
+├── config.lua         # Main configuration file
+├── mcps/              # Model Context Protocol servers (future)
+├── prompts/           # Custom prompt templates
+├── skills/            # Custom skills definitions
+│   ├── code-review/
+│   │   └── SKILL.md
+│   ├── debug/
+│   │   └── SKILL.md
+│   ├── refactor/
+│   │   └── SKILL.md
+│   └── rust-expert/
+│       └── SKILL.md
+├── tools/             # Custom tool implementations
+├── ui/                # Custom UI components (future)
+└── workflows/         # Workflow definitions (future)
+```
+
+**Directory Purposes:**
+
+- `config.lua` - Main Lua configuration file for model settings, commands, tools, and hooks
+- `skills/` - Custom skill definitions with SKILL.md files describing specialized behaviors
+- `tools/` - Custom tool implementations to extend Kota's capabilities
+- `prompts/` - Reusable prompt templates for common tasks
+- `mcps/` - MCP server configurations (planned feature)
+- `workflows/` - Automated workflow definitions (planned feature)
+- `ui/` - Custom UI components and themes (planned feature)
+
 ## Installation
 
 ### As a CLI Tool

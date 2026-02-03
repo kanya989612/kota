@@ -69,7 +69,9 @@ pub mod prelude {
     pub use super::agent::{create_agent, AgentBuilder, AgentInstance, AgentType, Provider};
     pub use super::context::{ContextManager, SerializableMessage, SessionMetadata};
     pub use super::plan::{Plan, PlanManager, Task, TaskStatus};
-    pub use super::runtime::{CommandDef, KotaConfig, KotaTool, SessionIdHook, ToolRegistry, ToolWrapper};
+    pub use super::runtime::{
+        CommandDef, KotaConfig, KotaTool, SessionIdHook, ToolRegistry, ToolWrapper,
+    };
     pub use super::skills::{Skill, SkillManager};
     pub use super::tools::FileToolError;
 }
