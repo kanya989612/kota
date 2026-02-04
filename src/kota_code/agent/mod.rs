@@ -108,7 +108,7 @@ impl AgentInstance {
         self.skill_manager.as_mut()
     }
 
-        /// Get the tool registry
+    /// Get the tool registry
     pub fn tool_registry(&self) -> &ToolRegistry {
         &self.tool_registry
     }
@@ -313,7 +313,7 @@ impl AgentBuilder {
             plan_manager: PlanManager::new(),
             context: None,
             skill_manager: None,
-            tool_registry: ToolRegistry::new()
+            tool_registry: ToolRegistry::new(),
         })
     }
 
@@ -368,7 +368,7 @@ impl AgentBuilder {
         }
 
         let preamble = self.get_preamble();
-       
+
         let agent = match self.provider {
             Provider::OpenAI => {
                 build_agent!(
@@ -428,14 +428,22 @@ impl AgentBuilder {
     /// Register all built-in tools to the tool registry
     fn register_builtin_tools(&mut self) {
         self.tool_registry.add(Box::new(WrappedReadFileTool::new()));
-        self.tool_registry.add(Box::new(WrappedWriteFileTool::new()));
+        self.tool_registry
+            .add(Box::new(WrappedWriteFileTool::new()));
         self.tool_registry.add(Box::new(WrappedEditFileTool::new()));
-        self.tool_registry.add(Box::new(WrappedDeleteFileTool::new()));
-        self.tool_registry.add(Box::new(WrappedExecuteBashCommandTool::new()));
-        self.tool_registry.add(Box::new(WrappedScanCodebaseTool::new()));
-        self.tool_registry.add(Box::new(WrappedCreateDirectoryTool::new()));
-        self.tool_registry.add(Box::new(WrappedGrepSearchTool::new()));
-        self.tool_registry.add(Box::new(WrappedUpdatePlanTool::new(self.plan_manager.clone())));
+        self.tool_registry
+            .add(Box::new(WrappedDeleteFileTool::new()));
+        self.tool_registry
+            .add(Box::new(WrappedExecuteBashCommandTool::new()));
+        self.tool_registry
+            .add(Box::new(WrappedScanCodebaseTool::new()));
+        self.tool_registry
+            .add(Box::new(WrappedCreateDirectoryTool::new()));
+        self.tool_registry
+            .add(Box::new(WrappedGrepSearchTool::new()));
+        self.tool_registry.add(Box::new(WrappedUpdatePlanTool::new(
+            self.plan_manager.clone(),
+        )));
     }
 
     fn get_provider_from_model(model_name: &str) -> Result<Provider> {

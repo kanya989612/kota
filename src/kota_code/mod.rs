@@ -72,9 +72,7 @@ pub mod prelude {
     pub use super::context::{ContextManager, SerializableMessage, SessionMetadata};
     pub use super::mcp::{client::McpClient, McpManager};
     pub use super::plan::{Plan, PlanManager, Task, TaskStatus};
-    pub use super::runtime::{
-        CommandDef, KotaConfig, SessionIdHook, ToolRegistry,
-    };
+    pub use super::runtime::{CommandDef, KotaConfig, SessionIdHook, ToolRegistry};
     pub use super::skills::{Skill, SkillManager};
     pub use super::tools::FileToolError;
 }

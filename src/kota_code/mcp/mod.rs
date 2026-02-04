@@ -6,9 +6,7 @@
 pub mod client;
 
 use anyhow::{Context, Result};
-use rmcp::
-    model::{InitializeResult, Tool}
-;
+use rmcp::model::{InitializeResult, Tool};
 use serde_json::Value;
 use std::collections::HashMap;
 use std::sync::Arc;

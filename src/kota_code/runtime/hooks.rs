@@ -13,6 +13,4 @@ impl SessionIdHook {
     }
 }
 
-impl<M: CompletionModel> StreamingPromptHook<M> for SessionIdHook {
-   
-}
+impl<M: CompletionModel> StreamingPromptHook<M> for SessionIdHook {}

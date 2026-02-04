@@ -23,7 +23,7 @@ kota.register_tool({
         },
         required = { "operation", "a", "b" }
     },
-    handler = function(args)
+    entry = function(args)
         local op = args.operation
         local a = args.a
         local b = args.b

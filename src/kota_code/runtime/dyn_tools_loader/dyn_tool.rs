@@ -1,5 +1,5 @@
 use mlua::prelude::*;
-use rig::{completion::ToolDefinition, tool::Tool};
+use rig::{completion::ToolDefinition, tool::ToolDyn};
 use serde::{Deserialize, Serialize};
 use serde_json::Value as JsonValue;
 use std::sync::Arc;
@@ -51,49 +51,70 @@ pub struct LuaToolOutput {
     pub result: JsonValue,
 }
 
-impl Tool for LuaDynTool {
-    const NAME: &'static str = "lua_dyn_tool";
-
-    type Error = DynToolError;
-    type Args = LuaToolArgs;
-    type Output = LuaToolOutput;
-
-    async fn definition(&self, _prompt: String) -> ToolDefinition {
-        ToolDefinition {
-            name: self.name.clone(),
-            description: self.description.clone(),
-            parameters: self.parameters.clone(),
-        }
+impl ToolDyn for LuaDynTool {
+    fn name(&self) -> String {
+        self.name.clone()
     }
 
-    async fn call(&self, args: Self::Args) -> Result<Self::Output, Self::Error> {
-        let lua = Lua::new();
-        
-        // Load the Lua function from bytecode
-        let func: LuaFunction = lua
-            .load(&*self.lua_code)
-            .call(())
-            .map_err(|e| {
-                DynToolError::InvalidInput(format!("Failed to load Lua function: {}", e))
+    fn definition<'a>(
+        &'a self,
+        _prompt: String,
+    ) -> rig::wasm_compat::WasmBoxedFuture<'a, ToolDefinition> {
+        Box::pin(async move {
+            ToolDefinition {
+                name: self.name.clone(),
+                description: self.description.clone(),
+                parameters: self.parameters.clone(),
+            }
+        })
+    }
+
+    fn call<'a>(
+        &'a self,
+        args: String,
+    ) -> rig::wasm_compat::WasmBoxedFuture<'a, Result<String, rig::tool::ToolError>> {
+        Box::pin(async move {
+            let lua = Lua::new();
+
+            // Load the Lua function from bytecode
+            let func: LuaFunction = lua.load(&*self.lua_code).into_function().map_err(|e| {
+                rig::tool::ToolError::ToolCallError(
+                    format!("Failed to load Lua bytecode: {}", e).into(),
+                )
             })?;
 
-        // Convert JSON args to Lua value
-        let lua_args = json_to_lua(&lua, &args.args).map_err(|e| {
-            DynToolError::InvalidInput(format!("Failed to convert args to Lua: {}", e))
-        })?;
+            // Parse JSON args
+            let json_args: JsonValue = serde_json::from_str(&args).map_err(|e| {
+                rig::tool::ToolError::ToolCallError(format!("Failed to parse args: {}", e).into())
+            })?;
 
-        // Call the Lua function
-        let result: LuaValue = func.call(lua_args).map_err(|e| {
-            DynToolError::InvalidInput(format!("Lua function call failed: {}", e))
-        })?;
+            // Convert JSON args to Lua value
+            let lua_args = json_to_lua(&lua, &json_args).map_err(|e| {
+                rig::tool::ToolError::ToolCallError(
+                    format!("Failed to convert args to Lua: {}", e).into(),
+                )
+            })?;
 
-        // Convert Lua result back to JSON
-        let json_result = lua_to_json(&result).map_err(|e| {
-            DynToolError::InvalidInput(format!("Failed to convert Lua result to JSON: {}", e))
-        })?;
+            // Call the Lua function
+            let result: LuaValue = func.call(lua_args).map_err(|e| {
+                rig::tool::ToolError::ToolCallError(
+                    format!("Lua function call failed: {}", e).into(),
+                )
+            })?;
 
-        Ok(LuaToolOutput {
-            result: json_result,
+            // Convert Lua result back to JSON
+            let json_result = lua_to_json(&result).map_err(|e| {
+                rig::tool::ToolError::ToolCallError(
+                    format!("Failed to convert Lua result to JSON: {}", e).into(),
+                )
+            })?;
+
+            // Return as JSON string
+            serde_json::to_string(&json_result).map_err(|e| {
+                rig::tool::ToolError::ToolCallError(
+                    format!("Failed to serialize result: {}", e).into(),
+                )
+            })
         })
     }
 }
@@ -148,7 +169,7 @@ fn lua_to_json(value: &LuaValue) -> LuaResult<JsonValue> {
             // Check if it's an array or object
             let mut is_array = true;
             let mut max_index = 0;
-            
+
             for pair in table.clone().pairs::<LuaValue, LuaValue>() {
                 let (key, _) = pair?;
                 if let LuaValue::Integer(i) = key {

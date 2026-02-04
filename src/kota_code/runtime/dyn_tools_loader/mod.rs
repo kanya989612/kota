@@ -13,7 +13,7 @@ impl LuaToolLoader {
     /// Load all Lua tools from .kota/tools/mod.lua
     pub fn load_tools() -> Result<Vec<LuaDynTool>> {
         let tools_path = ".kota/tools/init.lua";
-        
+
         if !Path::new(tools_path).exists() {
             // No tools file, return empty vec
             return Ok(Vec::new());
@@ -49,7 +49,7 @@ impl LuaToolLoader {
             let name: String = tool_def.get("name")?;
             let description: String = tool_def.get("description")?;
             let parameters: LuaTable = tool_def.get("parameters")?;
-            let handler: LuaFunction = tool_def.get("handler")?;
+            let handler: LuaFunction = tool_def.get("entry")?;
 
             // Convert parameters table to JSON
             let params_json = Self::lua_table_to_json(&parameters)?;
@@ -71,7 +71,7 @@ impl LuaToolLoader {
 
         for pair in table.clone().pairs::<LuaValue, LuaValue>() {
             let (key, value) = pair?;
-            
+
             let key_str = match key {
                 LuaValue::String(s) => s.to_str()?.to_string(),
                 LuaValue::Integer(i) => i.to_string(),
