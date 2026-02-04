@@ -12,7 +12,7 @@ use rig::{
 
 use super::context::ContextManager;
 use super::plan::PlanManager;
-use super::runtime::ToolRegistry;
+use super::runtime::{dyn_tools_loader::LuaToolLoader, ToolRegistry};
 use super::skills::SkillManager;
 use super::tools::{
     WrappedCreateDirectoryTool, WrappedDeleteFileTool, WrappedEditFileTool,
@@ -21,21 +21,12 @@ use super::tools::{
 };
 
 macro_rules! build_agent {
-    ($client_expr:expr, $model_name:expr, $preamble:expr, $tools:expr, $dyn_tools:expr, $variant:ident) => {{
+    ($client_expr:expr, $model_name:expr, $preamble:expr, $dyn_tools:expr, $variant:ident) => {{
         let client = $client_expr?;
         let agent = client
             .agent($model_name)
             .preamble(&$preamble)
             .max_tokens(4096)
-            .tool($tools.read_file)
-            .tool($tools.write_file)
-            .tool($tools.edit_file)
-            .tool($tools.delete_file)
-            .tool($tools.execute_bash)
-            .tool($tools.scan_codebase)
-            .tool($tools.make_dir)
-            .tool($tools.grep_find)
-            .tool($tools.update_plan)
             .tools($dyn_tools)
             .build();
         AgentType::$variant(agent)
@@ -362,7 +353,20 @@ impl AgentBuilder {
     ///
     /// Returns an AgentInstance that includes the agent, context manager, and skill manager
     pub fn build(mut self) -> Result<AgentInstance> {
-        let tools = self.create_tools();
+        // Register built-in tools first
+        self.register_builtin_tools();
+
+        // Load Lua tools from .kota/tools/mod.lua
+        let lua_tools = LuaToolLoader::load_tools().unwrap_or_else(|e| {
+            eprintln!("Warning: Failed to load Lua tools: {}", e);
+            Vec::new()
+        });
+
+        // Register Lua tools to the registry
+        for tool in lua_tools {
+            self.tool_registry.add(Box::new(tool));
+        }
+
         let preamble = self.get_preamble();
        
         let agent = match self.provider {
@@ -371,7 +375,6 @@ impl AgentBuilder {
                     openai::Client::new(&self.api_key),
                     &self.model_name,
                     preamble,
-                    tools,
                     self.tool_registry.take_all(),
                     OpenAI
                 )
@@ -381,7 +384,6 @@ impl AgentBuilder {
                     anthropic::Client::new(&self.api_key),
                     &self.model_name,
                     preamble,
-                    tools,
                     self.tool_registry.take_all(),
                     Anthropic
                 )
@@ -391,7 +393,6 @@ impl AgentBuilder {
                     cohere::Client::new(&self.api_key),
                     &self.model_name,
                     preamble,
-                    tools,
                     self.tool_registry.take_all(),
                     Cohere
                 )
@@ -401,7 +402,6 @@ impl AgentBuilder {
                     deepseek::Client::new(&self.api_key),
                     DEEPSEEK_CHAT,
                     preamble,
-                    tools,
                     self.tool_registry.take_all(),
                     DeepSeek
                 )
@@ -411,7 +411,6 @@ impl AgentBuilder {
                     ollama::Client::new(rig::client::Nothing),
                     &self.model_name,
                     preamble,
-                    tools,
                     self.tool_registry.take_all(),
                     Ollama
                 )
@@ -424,6 +423,19 @@ impl AgentBuilder {
             skill_manager: self.skill_manager,
             tool_registry: self.tool_registry,
         })
+    }
+
+    /// Register all built-in tools to the tool registry
+    fn register_builtin_tools(&mut self) {
+        self.tool_registry.add(Box::new(WrappedReadFileTool::new()));
+        self.tool_registry.add(Box::new(WrappedWriteFileTool::new()));
+        self.tool_registry.add(Box::new(WrappedEditFileTool::new()));
+        self.tool_registry.add(Box::new(WrappedDeleteFileTool::new()));
+        self.tool_registry.add(Box::new(WrappedExecuteBashCommandTool::new()));
+        self.tool_registry.add(Box::new(WrappedScanCodebaseTool::new()));
+        self.tool_registry.add(Box::new(WrappedCreateDirectoryTool::new()));
+        self.tool_registry.add(Box::new(WrappedGrepSearchTool::new()));
+        self.tool_registry.add(Box::new(WrappedUpdatePlanTool::new(self.plan_manager.clone())));
     }
 
     fn get_provider_from_model(model_name: &str) -> Result<Provider> {
@@ -448,20 +460,6 @@ impl AgentBuilder {
         }
     }
 
-    fn create_tools(&self) -> AgentTools {
-        AgentTools {
-            read_file: WrappedReadFileTool::new(),
-            write_file: WrappedWriteFileTool::new(),
-            edit_file: WrappedEditFileTool::new(),
-            delete_file: WrappedDeleteFileTool::new(),
-            execute_bash: WrappedExecuteBashCommandTool::new(),
-            scan_codebase: WrappedScanCodebaseTool::new(),
-            make_dir: WrappedCreateDirectoryTool::new(),
-            grep_find: WrappedGrepSearchTool::new(),
-            update_plan: WrappedUpdatePlanTool::new(self.plan_manager.clone()),
-        }
-    }
-
     fn get_preamble(&self) -> &str {
         r#"
         Your name is Kato. You are a helpful AI code assistant with comprehensive file system and command execution access. 
@@ -476,18 +474,6 @@ impl AgentBuilder {
         
         Please provide clear and concise responses and be careful when modifying files or executing commands."#
     }
-}
-
-struct AgentTools {
-    read_file: WrappedReadFileTool,
-    write_file: WrappedWriteFileTool,
-    edit_file: WrappedEditFileTool,
-    delete_file: WrappedDeleteFileTool,
-    execute_bash: WrappedExecuteBashCommandTool,
-    scan_codebase: WrappedScanCodebaseTool,
-    make_dir: WrappedCreateDirectoryTool,
-    grep_find: WrappedGrepSearchTool,
-    update_plan: WrappedUpdatePlanTool,
 }
 
 /// Convenience function for creating an agent with default settings
