@@ -18,6 +18,20 @@ Kota is designed with the philosophy of **vim** - lightweight, highly extensible
 
 Whether you use it as a CLI tool or integrate it as a library into your own projects, Kota gives you the power to build AI-assisted workflows that match your needs - without the overhead.
 
+## Comparison with Other Code Agents
+
+| Feature | Kota | Cursor | GitHub Copilot | Claude Code | Codex |
+|---------|------|--------|----------------|-------------|-------|
+| **Language** | Rust | Electron/TS | TypeScript | Proprietary | Rust |
+| **Extensibility** | ✅ Lua config + Custom tools | Limited | Plugin API | ❌ No | API only |
+| **CLI Support** | ✅ Full-featured | ❌ IDE only | ❌ IDE only | ❌ Web only | ✅ API |
+| **Library Usage** | ✅ Rust crate | ❌ No | ❌ No | ❌ No | ❌ No |
+| **Skills System** | ✅ Built-in | ❌ No | ❌ No | ✅ Built-in | ❌ No |
+| **Custom Commands** | ✅ Lua functions | ❌ No | ❌ No | ❌ No | ❌ No |
+| **Multi-Model** | ✅ Multiple | ✅ Multiple | ❌ OpenAI only | ❌ Claude only | ❌ OpenAI only |
+| **Configuration** | Simple Lua files | GUI settings | GUI settings | Web UI | API config |
+| **Learning Curve** | Low (vim-like) | Medium | Low | Low | High |
+
 ## Setup
 
 ### Configuration
