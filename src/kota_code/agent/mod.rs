@@ -10,8 +10,6 @@ use rig::{
     streaming::StreamingPrompt,
 };
 
-use crate::prelude::KotaTool;
-
 use super::context::ContextManager;
 use super::plan::PlanManager;
 use super::runtime::ToolRegistry;
@@ -21,10 +19,9 @@ use super::tools::{
     WrappedExecuteBashCommandTool, WrappedGrepSearchTool, WrappedReadFileTool,
     WrappedScanCodebaseTool, WrappedUpdatePlanTool, WrappedWriteFileTool,
 };
-use std::sync::{Arc, RwLock};
 
 macro_rules! build_agent {
-    ($client_expr:expr, $model_name:expr, $preamble:expr, $tools:expr, $variant:ident) => {{
+    ($client_expr:expr, $model_name:expr, $preamble:expr, $tools:expr, $dyn_tools:expr, $variant:ident) => {{
         let client = $client_expr?;
         let agent = client
             .agent($model_name)
@@ -39,6 +36,7 @@ macro_rules! build_agent {
             .tool($tools.make_dir)
             .tool($tools.grep_find)
             .tool($tools.update_plan)
+            .tools($dyn_tools)
             .build();
         AgentType::$variant(agent)
     }};
@@ -95,7 +93,7 @@ pub struct AgentInstance {
     pub agent: AgentType,
     pub context: Option<ContextManager>,
     pub skill_manager: Option<SkillManager>,
-    pub tool_registry: Arc<RwLock<ToolRegistry>>,
+    pub tool_registry: ToolRegistry,
 }
 
 impl AgentInstance {
@@ -109,11 +107,6 @@ impl AgentInstance {
         self.skill_manager.as_ref()
     }
 
-    /// Get the tool registry
-    pub fn tool_registry(&self) -> Arc<RwLock<ToolRegistry>> {
-        Arc::clone(&self.tool_registry)
-    }
-
     /// Get mutable context manager
     pub fn context_mut(&mut self) -> Option<&mut ContextManager> {
         self.context.as_mut()
@@ -122,6 +115,16 @@ impl AgentInstance {
     /// Get mutable skill manager
     pub fn skill_manager_mut(&mut self) -> Option<&mut SkillManager> {
         self.skill_manager.as_mut()
+    }
+
+        /// Get the tool registry
+    pub fn tool_registry(&self) -> &ToolRegistry {
+        &self.tool_registry
+    }
+
+    /// Get mutable tool registry
+    pub fn tool_registry_mut(&mut self) -> &mut ToolRegistry {
+        &mut self.tool_registry
     }
 }
 
@@ -296,7 +299,7 @@ pub struct AgentBuilder {
     plan_manager: PlanManager,
     context: Option<ContextManager>,
     skill_manager: Option<SkillManager>,
-    tool_registry: Arc<RwLock<ToolRegistry>>,
+    tool_registry: ToolRegistry,
 }
 
 impl AgentBuilder {
@@ -319,7 +322,7 @@ impl AgentBuilder {
             plan_manager: PlanManager::new(),
             context: None,
             skill_manager: None,
-            tool_registry: Arc::new(RwLock::new(ToolRegistry::new())),
+            tool_registry: ToolRegistry::new()
         })
     }
 
@@ -353,40 +356,15 @@ impl AgentBuilder {
         self
     }
 
-    /// Set a custom tool registry
-    ///
-    /// This replaces the default tool registry. If you want to keep default tools
-    /// and add custom ones, use `tool_registry()` after building the agent.
-    ///
-    /// # Arguments
-    ///
-    /// * `registry` - A ToolRegistry instance for managing custom tools
-    pub fn with_tool_registry(mut self, registry: ToolRegistry) -> Self {
-        self.tool_registry = Arc::new(RwLock::new(registry));
-        self
-    }
-
-    /// Add a custom tool to the existing registry
-    ///
-    /// This keeps all default tools and adds your custom tool.
-    ///
-    /// # Arguments
-    ///
-    /// * `tool` - A tool that implements `KotaTool` trait
-    pub fn with_tool(self, tool: Arc<dyn KotaTool>) -> Self {
-        self.tool_registry.write().unwrap().register_tool(tool);
-        self
-    }
-
     /// Build the agent with the configured settings
     ///
     /// # Returns
     ///
     /// Returns an AgentInstance that includes the agent, context manager, and skill manager
-    pub fn build(self) -> Result<AgentInstance> {
+    pub fn build(mut self) -> Result<AgentInstance> {
         let tools = self.create_tools();
         let preamble = self.get_preamble();
-
+       
         let agent = match self.provider {
             Provider::OpenAI => {
                 build_agent!(
@@ -394,6 +372,7 @@ impl AgentBuilder {
                     &self.model_name,
                     preamble,
                     tools,
+                    self.tool_registry.take_all(),
                     OpenAI
                 )
             }
@@ -403,6 +382,7 @@ impl AgentBuilder {
                     &self.model_name,
                     preamble,
                     tools,
+                    self.tool_registry.take_all(),
                     Anthropic
                 )
             }
@@ -412,6 +392,7 @@ impl AgentBuilder {
                     &self.model_name,
                     preamble,
                     tools,
+                    self.tool_registry.take_all(),
                     Cohere
                 )
             }
@@ -421,6 +402,7 @@ impl AgentBuilder {
                     DEEPSEEK_CHAT,
                     preamble,
                     tools,
+                    self.tool_registry.take_all(),
                     DeepSeek
                 )
             }
@@ -430,6 +412,7 @@ impl AgentBuilder {
                     &self.model_name,
                     preamble,
                     tools,
+                    self.tool_registry.take_all(),
                     Ollama
                 )
             }

@@ -4,4 +4,4 @@ pub mod tool_registry;
 
 pub use config::{CommandDef, KotaConfig};
 pub use hooks::SessionIdHook;
-pub use tool_registry::{KotaTool, ToolRegistry, ToolWrapper};
+pub use tool_registry::ToolRegistry;

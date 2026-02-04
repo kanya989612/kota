@@ -58,7 +58,7 @@ pub use agent::{create_agent, AgentBuilder, AgentInstance, AgentType, Provider};
 pub use context::{ContextManager, SerializableMessage, SessionMetadata};
 pub use mcp::{client::McpClient, McpManager};
 pub use plan::{Plan, PlanManager, Task, TaskStatus};
-pub use runtime::{CommandDef, KotaConfig, KotaTool, SessionIdHook, ToolRegistry, ToolWrapper};
+pub use runtime::{CommandDef, KotaConfig, SessionIdHook, ToolRegistry};
 pub use skills::{Skill, SkillManager};
 pub use tools::{
     FileToolError, WrappedCreateDirectoryTool, WrappedDeleteFileTool, WrappedEditFileTool,
@@ -73,7 +73,7 @@ pub mod prelude {
     pub use super::mcp::{client::McpClient, McpManager};
     pub use super::plan::{Plan, PlanManager, Task, TaskStatus};
     pub use super::runtime::{
-        CommandDef, KotaConfig, KotaTool, SessionIdHook, ToolRegistry, ToolWrapper,
+        CommandDef, KotaConfig, SessionIdHook, ToolRegistry,
     };
     pub use super::skills::{Skill, SkillManager};
     pub use super::tools::FileToolError;
